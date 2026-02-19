@@ -1,32 +1,71 @@
-# `Turborepo` Vite starter
+# Ucur
 
-This is a community-maintained example. If you experience a problem, please submit a pull request with a fix. GitHub Issues will be closed.
+A vibe coding tool boilerplate — Electron desktop app with React, Zustand, PostgreSQL, Drizzle ORM, and AI chat.
 
-## Using this example
+## Architecture
 
-Run the following command:
+- **packages/types** — Centralized shared types
+- **packages/db** — Drizzle schema, migrations, repositories
+- **apps/backend** — Express API (chat, conversations, settings) using Anthropic via Vercel AI SDK
+- **apps/desktop** — Electron + React + Vercel AI SDK + Zustand + Tailwind v4
 
-```sh
-npx create-turbo@latest -e with-vite-react
+## Prerequisites
+
+- [Bun](https://bun.sh)
+
+## Setup
+
+1. **Install dependencies**
+
+   ```bash
+   bun install
+   ```
+
+2. **Database (optional)**
+
+   Uses SQLite by default at `./data/ucur.db`. Override with `DATABASE_URL`:
+
+   ```
+   DATABASE_URL=./data/ucur.db
+   ```
+
+   Push schema:
+
+   ```bash
+   cd packages/db && bun run db:push
+   ```
+
+4. **Set Anthropic API key**
+
+   Either set `ANTHROPIC_API_KEY` in your environment, or configure it in the app Settings after launching.
+
+## Development
+
+Start the backend and desktop app in separate terminals:
+
+```bash
+# Terminal 1: Backend API
+bun run dev --filter=backend
+
+# Terminal 2: Desktop app
+bun run dev --filter=desktop
 ```
 
-## What's inside?
+Or run both:
 
-This Turborepo includes the following packages and apps:
+```bash
+bun run dev
+```
 
-### Apps and Packages
+## Build
 
-- `web`: react [vite](https://vitejs.dev) ts app
-- `@repo/ui`: a stub component library shared by `web` application
-- `@repo/eslint-config`: shared `eslint` configurations
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+```bash
+bun run build
+```
 
-Each package and app is 100% [TypeScript](https://www.typescriptlang.org/).
+## Features
 
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+- **Chat** — AI chat with conversation management (create, list, delete)
+- **Settings** — API key, model, theme
+- Messages are persisted in PostgreSQL
+- Frontend uses Vercel AI SDK (`useChat`); backend uses Anthropic via AI SDK `streamText`

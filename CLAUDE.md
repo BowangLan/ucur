@@ -7,6 +7,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Turborepo monorepo with Bun as the package manager. Two workspaces: `apps/*` and `packages/*`.
 
 - **apps/web** — Vite + React 18 + TypeScript application
+- **apps/backend** — Express API server (chat, conversations, settings) with Drizzle + Anthropic
+- **apps/desktop** — Electron + React + Vercel AI SDK desktop app
+- **packages/types** — Centralized shared types (`@repo/types`)
+- **packages/db** — Drizzle ORM schema, migrations, repositories (`@repo/db`)
 - **packages/ui** — Shared React component library (`@repo/ui`)
 - **packages/eslint-config** — Shared ESLint configuration (`@repo/eslint-config`)
 - **packages/typescript-config** — Shared TypeScript base configs (`@repo/typescript-config`)
