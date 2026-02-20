@@ -55,6 +55,7 @@ router.post("/", async (req, res) => {
     };
 
     const appSettings = await settingsRepo.get();
+    console.log("[chat] appSettings:", appSettings);
     const modelId = appSettings?.model ?? "claude-sonnet-4-20250514";
 
     let convId = conversationId;
@@ -103,6 +104,8 @@ router.post("/", async (req, res) => {
           if (sessionId) {
             options.resume = sessionId;
           }
+
+          console.log("[chat] query options:", options);
 
           const q = query({ prompt, options });
 

@@ -3,17 +3,19 @@ import express from "express";
 import { accountRouter } from "./routes/account.js";
 import { chatRouter } from "./routes/chat.js";
 import { conversationsRouter } from "./routes/conversations.js";
+import { screensRouter } from "./routes/screens.js";
 import { settingsRouter } from "./routes/settings.js";
 
 const app = express();
 const PORT = process.env.PORT ?? 3001;
 
 app.use(cors({ origin: "*" }));
-app.use(express.json());
+app.use(express.json({ limit: "15mb" }));
 
 app.use("/api/account", accountRouter);
 app.use("/api/chat", chatRouter);
 app.use("/api/conversations", conversationsRouter);
+app.use("/api/screens", screensRouter);
 app.use("/api/settings", settingsRouter);
 
 app.get("/health", (_req, res) => {

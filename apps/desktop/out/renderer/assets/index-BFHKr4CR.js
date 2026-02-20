@@ -266,7 +266,7 @@ react_production_min.version = "18.3.1";
   react.exports = react_production_min;
 }
 var reactExports = react.exports;
-const React$1 = /* @__PURE__ */ getDefaultExportFromCjs(reactExports);
+const React = /* @__PURE__ */ getDefaultExportFromCjs(reactExports);
 /**
  * @license React
  * react-jsx-runtime.production.min.js
@@ -293,7 +293,6 @@ reactJsxRuntime_production_min.jsxs = q;
   jsxRuntime.exports = reactJsxRuntime_production_min;
 }
 var jsxRuntimeExports = jsxRuntime.exports;
-const Fragment = jsxRuntimeExports.Fragment;
 const jsx = jsxRuntimeExports.jsx;
 const jsxs = jsxRuntimeExports.jsxs;
 var client = {};
@@ -6969,3525 +6968,573 @@ var m = reactDomExports;
   client.createRoot = m.createRoot;
   client.hydrateRoot = m.hydrateRoot;
 }
-var marker = "vercel.ai.error";
-var symbol = Symbol.for(marker);
-var _a;
-var _AISDKError = class _AISDKError2 extends Error {
-  /**
-   * Creates an AI SDK Error.
-   *
-   * @param {Object} params - The parameters for creating the error.
-   * @param {string} params.name - The name of the error.
-   * @param {string} params.message - The error message.
-   * @param {unknown} [params.cause] - The underlying cause of the error.
-   */
-  constructor({
-    name: name14,
-    message,
-    cause
-  }) {
-    super(message);
-    this[_a] = true;
-    this.name = name14;
-    this.cause = cause;
-  }
-  /**
-   * Checks if the given error is an AI SDK Error.
-   * @param {unknown} error - The error to check.
-   * @returns {boolean} True if the error is an AI SDK Error, false otherwise.
-   */
-  static isInstance(error) {
-    return _AISDKError2.hasMarker(error, marker);
-  }
-  static hasMarker(error, marker15) {
-    const markerSymbol = Symbol.for(marker15);
-    return error != null && typeof error === "object" && markerSymbol in error && typeof error[markerSymbol] === "boolean" && error[markerSymbol] === true;
-  }
-};
-_a = symbol;
-var AISDKError = _AISDKError;
-function getErrorMessage(error) {
-  if (error == null) {
-    return "unknown error";
-  }
-  if (typeof error === "string") {
-    return error;
-  }
-  if (error instanceof Error) {
-    return error.message;
-  }
-  return JSON.stringify(error);
-}
-var name3 = "AI_InvalidArgumentError";
-var marker4 = `vercel.ai.error.${name3}`;
-var symbol4 = Symbol.for(marker4);
-var _a4;
-var InvalidArgumentError = class extends AISDKError {
-  constructor({
-    message,
-    cause,
-    argument
-  }) {
-    super({ name: name3, message, cause });
-    this[_a4] = true;
-    this.argument = argument;
-  }
-  static isInstance(error) {
-    return AISDKError.hasMarker(error, marker4);
-  }
-};
-_a4 = symbol4;
-var name6 = "AI_JSONParseError";
-var marker7 = `vercel.ai.error.${name6}`;
-var symbol7 = Symbol.for(marker7);
-var _a7;
-var JSONParseError = class extends AISDKError {
-  constructor({ text, cause }) {
-    super({
-      name: name6,
-      message: `JSON parsing failed: Text: ${text}.
-Error message: ${getErrorMessage(cause)}`,
-      cause
-    });
-    this[_a7] = true;
-    this.text = text;
-  }
-  static isInstance(error) {
-    return AISDKError.hasMarker(error, marker7);
-  }
-};
-_a7 = symbol7;
-var name12 = "AI_TypeValidationError";
-var marker13 = `vercel.ai.error.${name12}`;
-var symbol13 = Symbol.for(marker13);
-var _a13;
-var _TypeValidationError = class _TypeValidationError2 extends AISDKError {
-  constructor({ value, cause }) {
-    super({
-      name: name12,
-      message: `Type validation failed: Value: ${JSON.stringify(value)}.
-Error message: ${getErrorMessage(cause)}`,
-      cause
-    });
-    this[_a13] = true;
-    this.value = value;
-  }
-  static isInstance(error) {
-    return AISDKError.hasMarker(error, marker13);
-  }
-  /**
-   * Wraps an error into a TypeValidationError.
-   * If the cause is already a TypeValidationError with the same value, it returns the cause.
-   * Otherwise, it creates a new TypeValidationError.
-   *
-   * @param {Object} params - The parameters for wrapping the error.
-   * @param {unknown} params.value - The value that failed validation.
-   * @param {unknown} params.cause - The original error or cause of the validation failure.
-   * @returns {TypeValidationError} A TypeValidationError instance.
-   */
-  static wrap({
-    value,
-    cause
-  }) {
-    return _TypeValidationError2.isInstance(cause) && cause.value === value ? cause : new _TypeValidationError2({ value, cause });
-  }
-};
-_a13 = symbol13;
-var TypeValidationError = _TypeValidationError;
-let customAlphabet = (alphabet, defaultSize = 21) => {
-  return (size = defaultSize) => {
-    let id2 = "";
-    let i = size | 0;
-    while (i--) {
-      id2 += alphabet[Math.random() * alphabet.length | 0];
-    }
-    return id2;
-  };
-};
-var secureJsonParse = { exports: {} };
-const hasBuffer = typeof Buffer !== "undefined";
-const suspectProtoRx = /"(?:_|\\u005[Ff])(?:_|\\u005[Ff])(?:p|\\u0070)(?:r|\\u0072)(?:o|\\u006[Ff])(?:t|\\u0074)(?:o|\\u006[Ff])(?:_|\\u005[Ff])(?:_|\\u005[Ff])"\s*:/;
-const suspectConstructorRx = /"(?:c|\\u0063)(?:o|\\u006[Ff])(?:n|\\u006[Ee])(?:s|\\u0073)(?:t|\\u0074)(?:r|\\u0072)(?:u|\\u0075)(?:c|\\u0063)(?:t|\\u0074)(?:o|\\u006[Ff])(?:r|\\u0072)"\s*:/;
-function _parse(text, reviver, options) {
-  if (options == null) {
-    if (reviver !== null && typeof reviver === "object") {
-      options = reviver;
-      reviver = void 0;
-    }
-  }
-  if (hasBuffer && Buffer.isBuffer(text)) {
-    text = text.toString();
-  }
-  if (text && text.charCodeAt(0) === 65279) {
-    text = text.slice(1);
-  }
-  const obj = JSON.parse(text, reviver);
-  if (obj === null || typeof obj !== "object") {
-    return obj;
-  }
-  const protoAction = options && options.protoAction || "error";
-  const constructorAction = options && options.constructorAction || "error";
-  if (protoAction === "ignore" && constructorAction === "ignore") {
-    return obj;
-  }
-  if (protoAction !== "ignore" && constructorAction !== "ignore") {
-    if (suspectProtoRx.test(text) === false && suspectConstructorRx.test(text) === false) {
-      return obj;
-    }
-  } else if (protoAction !== "ignore" && constructorAction === "ignore") {
-    if (suspectProtoRx.test(text) === false) {
-      return obj;
-    }
-  } else {
-    if (suspectConstructorRx.test(text) === false) {
-      return obj;
-    }
-  }
-  return filter(obj, { protoAction, constructorAction, safe: options && options.safe });
-}
-function filter(obj, { protoAction = "error", constructorAction = "error", safe } = {}) {
-  let next = [obj];
-  while (next.length) {
-    const nodes = next;
-    next = [];
-    for (const node of nodes) {
-      if (protoAction !== "ignore" && Object.prototype.hasOwnProperty.call(node, "__proto__")) {
-        if (safe === true) {
-          return null;
-        } else if (protoAction === "error") {
-          throw new SyntaxError("Object contains forbidden prototype property");
-        }
-        delete node.__proto__;
-      }
-      if (constructorAction !== "ignore" && Object.prototype.hasOwnProperty.call(node, "constructor") && Object.prototype.hasOwnProperty.call(node.constructor, "prototype")) {
-        if (safe === true) {
-          return null;
-        } else if (constructorAction === "error") {
-          throw new SyntaxError("Object contains forbidden prototype property");
-        }
-        delete node.constructor;
-      }
-      for (const key in node) {
-        const value = node[key];
-        if (value && typeof value === "object") {
-          next.push(value);
-        }
-      }
-    }
-  }
-  return obj;
-}
-function parse(text, reviver, options) {
-  const stackTraceLimit = Error.stackTraceLimit;
-  Error.stackTraceLimit = 0;
-  try {
-    return _parse(text, reviver, options);
-  } finally {
-    Error.stackTraceLimit = stackTraceLimit;
-  }
-}
-function safeParse(text, reviver) {
-  const stackTraceLimit = Error.stackTraceLimit;
-  Error.stackTraceLimit = 0;
-  try {
-    return _parse(text, reviver, { safe: true });
-  } catch (_e) {
-    return null;
-  } finally {
-    Error.stackTraceLimit = stackTraceLimit;
-  }
-}
-secureJsonParse.exports = parse;
-secureJsonParse.exports.default = parse;
-secureJsonParse.exports.parse = parse;
-secureJsonParse.exports.safeParse = safeParse;
-secureJsonParse.exports.scan = filter;
-var secureJsonParseExports = secureJsonParse.exports;
-const SecureJSON = /* @__PURE__ */ getDefaultExportFromCjs(secureJsonParseExports);
-var createIdGenerator = ({
-  prefix,
-  size: defaultSize = 16,
-  alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
-  separator = "-"
-} = {}) => {
-  const generator = customAlphabet(alphabet, defaultSize);
-  if (prefix == null) {
-    return generator;
-  }
-  if (alphabet.includes(separator)) {
-    throw new InvalidArgumentError({
-      argument: "separator",
-      message: `The separator "${separator}" must not be part of the alphabet "${alphabet}".`
-    });
-  }
-  return (size) => `${prefix}${separator}${generator(size)}`;
-};
-var generateId = createIdGenerator();
-var validatorSymbol = Symbol.for("vercel.ai.validator");
-function validator(validate) {
-  return { [validatorSymbol]: true, validate };
-}
-function isValidator(value) {
-  return typeof value === "object" && value !== null && validatorSymbol in value && value[validatorSymbol] === true && "validate" in value;
-}
-function asValidator(value) {
-  return isValidator(value) ? value : zodValidator(value);
-}
-function zodValidator(zodSchema) {
-  return validator((value) => {
-    const result = zodSchema.safeParse(value);
-    return result.success ? { success: true, value: result.data } : { success: false, error: result.error };
-  });
-}
-function safeValidateTypes({
-  value,
-  schema
-}) {
-  const validator2 = asValidator(schema);
-  try {
-    if (validator2.validate == null) {
-      return { success: true, value };
-    }
-    const result = validator2.validate(value);
-    if (result.success) {
-      return result;
-    }
-    return {
-      success: false,
-      error: TypeValidationError.wrap({ value, cause: result.error })
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: TypeValidationError.wrap({ value, cause: error })
-    };
-  }
-}
-function safeParseJSON({
-  text,
-  schema
-}) {
-  try {
-    const value = SecureJSON.parse(text);
-    if (schema == null) {
-      return { success: true, value, rawValue: value };
-    }
-    const validationResult = safeValidateTypes({ value, schema });
-    return validationResult.success ? { ...validationResult, rawValue: value } : validationResult;
-  } catch (error) {
-    return {
-      success: false,
-      error: JSONParseError.isInstance(error) ? error : new JSONParseError({ text, cause: error })
-    };
-  }
-}
-new Set("ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvxyz0123456789");
-var textStreamPart = {
-  code: "0",
-  name: "text",
-  parse: (value) => {
-    if (typeof value !== "string") {
-      throw new Error('"text" parts expect a string value.');
-    }
-    return { type: "text", value };
-  }
-};
-var errorStreamPart = {
-  code: "3",
-  name: "error",
-  parse: (value) => {
-    if (typeof value !== "string") {
-      throw new Error('"error" parts expect a string value.');
-    }
-    return { type: "error", value };
-  }
-};
-var assistantMessageStreamPart = {
-  code: "4",
-  name: "assistant_message",
-  parse: (value) => {
-    if (value == null || typeof value !== "object" || !("id" in value) || !("role" in value) || !("content" in value) || typeof value.id !== "string" || typeof value.role !== "string" || value.role !== "assistant" || !Array.isArray(value.content) || !value.content.every(
-      (item) => item != null && typeof item === "object" && "type" in item && item.type === "text" && "text" in item && item.text != null && typeof item.text === "object" && "value" in item.text && typeof item.text.value === "string"
-    )) {
-      throw new Error(
-        '"assistant_message" parts expect an object with an "id", "role", and "content" property.'
-      );
-    }
-    return {
-      type: "assistant_message",
-      value
-    };
-  }
-};
-var assistantControlDataStreamPart = {
-  code: "5",
-  name: "assistant_control_data",
-  parse: (value) => {
-    if (value == null || typeof value !== "object" || !("threadId" in value) || !("messageId" in value) || typeof value.threadId !== "string" || typeof value.messageId !== "string") {
-      throw new Error(
-        '"assistant_control_data" parts expect an object with a "threadId" and "messageId" property.'
-      );
-    }
-    return {
-      type: "assistant_control_data",
-      value: {
-        threadId: value.threadId,
-        messageId: value.messageId
-      }
-    };
-  }
-};
-var dataMessageStreamPart = {
-  code: "6",
-  name: "data_message",
-  parse: (value) => {
-    if (value == null || typeof value !== "object" || !("role" in value) || !("data" in value) || typeof value.role !== "string" || value.role !== "data") {
-      throw new Error(
-        '"data_message" parts expect an object with a "role" and "data" property.'
-      );
-    }
-    return {
-      type: "data_message",
-      value
-    };
-  }
-};
-var assistantStreamParts = [
-  textStreamPart,
-  errorStreamPart,
-  assistantMessageStreamPart,
-  assistantControlDataStreamPart,
-  dataMessageStreamPart
-];
-({
-  [textStreamPart.code]: textStreamPart,
-  [errorStreamPart.code]: errorStreamPart,
-  [assistantMessageStreamPart.code]: assistantMessageStreamPart,
-  [assistantControlDataStreamPart.code]: assistantControlDataStreamPart,
-  [dataMessageStreamPart.code]: dataMessageStreamPart
-});
-({
-  [textStreamPart.name]: textStreamPart.code,
-  [errorStreamPart.name]: errorStreamPart.code,
-  [assistantMessageStreamPart.name]: assistantMessageStreamPart.code,
-  [assistantControlDataStreamPart.name]: assistantControlDataStreamPart.code,
-  [dataMessageStreamPart.name]: dataMessageStreamPart.code
-});
-assistantStreamParts.map((part) => part.code);
-function calculateLanguageModelUsage({
-  promptTokens,
-  completionTokens
-}) {
-  return {
-    promptTokens,
-    completionTokens,
-    totalTokens: promptTokens + completionTokens
-  };
-}
-function fixJson(input) {
-  const stack = ["ROOT"];
-  let lastValidIndex = -1;
-  let literalStart = null;
-  function processValueStart(char, i, swapState) {
-    {
-      switch (char) {
-        case '"': {
-          lastValidIndex = i;
-          stack.pop();
-          stack.push(swapState);
-          stack.push("INSIDE_STRING");
-          break;
-        }
-        case "f":
-        case "t":
-        case "n": {
-          lastValidIndex = i;
-          literalStart = i;
-          stack.pop();
-          stack.push(swapState);
-          stack.push("INSIDE_LITERAL");
-          break;
-        }
-        case "-": {
-          stack.pop();
-          stack.push(swapState);
-          stack.push("INSIDE_NUMBER");
-          break;
-        }
-        case "0":
-        case "1":
-        case "2":
-        case "3":
-        case "4":
-        case "5":
-        case "6":
-        case "7":
-        case "8":
-        case "9": {
-          lastValidIndex = i;
-          stack.pop();
-          stack.push(swapState);
-          stack.push("INSIDE_NUMBER");
-          break;
-        }
-        case "{": {
-          lastValidIndex = i;
-          stack.pop();
-          stack.push(swapState);
-          stack.push("INSIDE_OBJECT_START");
-          break;
-        }
-        case "[": {
-          lastValidIndex = i;
-          stack.pop();
-          stack.push(swapState);
-          stack.push("INSIDE_ARRAY_START");
-          break;
-        }
-      }
-    }
-  }
-  function processAfterObjectValue(char, i) {
-    switch (char) {
-      case ",": {
-        stack.pop();
-        stack.push("INSIDE_OBJECT_AFTER_COMMA");
-        break;
-      }
-      case "}": {
-        lastValidIndex = i;
-        stack.pop();
-        break;
-      }
-    }
-  }
-  function processAfterArrayValue(char, i) {
-    switch (char) {
-      case ",": {
-        stack.pop();
-        stack.push("INSIDE_ARRAY_AFTER_COMMA");
-        break;
-      }
-      case "]": {
-        lastValidIndex = i;
-        stack.pop();
-        break;
-      }
-    }
-  }
-  for (let i = 0; i < input.length; i++) {
-    const char = input[i];
-    const currentState = stack[stack.length - 1];
-    switch (currentState) {
-      case "ROOT":
-        processValueStart(char, i, "FINISH");
-        break;
-      case "INSIDE_OBJECT_START": {
-        switch (char) {
-          case '"': {
-            stack.pop();
-            stack.push("INSIDE_OBJECT_KEY");
-            break;
-          }
-          case "}": {
-            lastValidIndex = i;
-            stack.pop();
-            break;
-          }
-        }
-        break;
-      }
-      case "INSIDE_OBJECT_AFTER_COMMA": {
-        switch (char) {
-          case '"': {
-            stack.pop();
-            stack.push("INSIDE_OBJECT_KEY");
-            break;
-          }
-        }
-        break;
-      }
-      case "INSIDE_OBJECT_KEY": {
-        switch (char) {
-          case '"': {
-            stack.pop();
-            stack.push("INSIDE_OBJECT_AFTER_KEY");
-            break;
-          }
-        }
-        break;
-      }
-      case "INSIDE_OBJECT_AFTER_KEY": {
-        switch (char) {
-          case ":": {
-            stack.pop();
-            stack.push("INSIDE_OBJECT_BEFORE_VALUE");
-            break;
-          }
-        }
-        break;
-      }
-      case "INSIDE_OBJECT_BEFORE_VALUE": {
-        processValueStart(char, i, "INSIDE_OBJECT_AFTER_VALUE");
-        break;
-      }
-      case "INSIDE_OBJECT_AFTER_VALUE": {
-        processAfterObjectValue(char, i);
-        break;
-      }
-      case "INSIDE_STRING": {
-        switch (char) {
-          case '"': {
-            stack.pop();
-            lastValidIndex = i;
-            break;
-          }
-          case "\\": {
-            stack.push("INSIDE_STRING_ESCAPE");
-            break;
-          }
-          default: {
-            lastValidIndex = i;
-          }
-        }
-        break;
-      }
-      case "INSIDE_ARRAY_START": {
-        switch (char) {
-          case "]": {
-            lastValidIndex = i;
-            stack.pop();
-            break;
-          }
-          default: {
-            lastValidIndex = i;
-            processValueStart(char, i, "INSIDE_ARRAY_AFTER_VALUE");
-            break;
-          }
-        }
-        break;
-      }
-      case "INSIDE_ARRAY_AFTER_VALUE": {
-        switch (char) {
-          case ",": {
-            stack.pop();
-            stack.push("INSIDE_ARRAY_AFTER_COMMA");
-            break;
-          }
-          case "]": {
-            lastValidIndex = i;
-            stack.pop();
-            break;
-          }
-          default: {
-            lastValidIndex = i;
-            break;
-          }
-        }
-        break;
-      }
-      case "INSIDE_ARRAY_AFTER_COMMA": {
-        processValueStart(char, i, "INSIDE_ARRAY_AFTER_VALUE");
-        break;
-      }
-      case "INSIDE_STRING_ESCAPE": {
-        stack.pop();
-        lastValidIndex = i;
-        break;
-      }
-      case "INSIDE_NUMBER": {
-        switch (char) {
-          case "0":
-          case "1":
-          case "2":
-          case "3":
-          case "4":
-          case "5":
-          case "6":
-          case "7":
-          case "8":
-          case "9": {
-            lastValidIndex = i;
-            break;
-          }
-          case "e":
-          case "E":
-          case "-":
-          case ".": {
-            break;
-          }
-          case ",": {
-            stack.pop();
-            if (stack[stack.length - 1] === "INSIDE_ARRAY_AFTER_VALUE") {
-              processAfterArrayValue(char, i);
-            }
-            if (stack[stack.length - 1] === "INSIDE_OBJECT_AFTER_VALUE") {
-              processAfterObjectValue(char, i);
-            }
-            break;
-          }
-          case "}": {
-            stack.pop();
-            if (stack[stack.length - 1] === "INSIDE_OBJECT_AFTER_VALUE") {
-              processAfterObjectValue(char, i);
-            }
-            break;
-          }
-          case "]": {
-            stack.pop();
-            if (stack[stack.length - 1] === "INSIDE_ARRAY_AFTER_VALUE") {
-              processAfterArrayValue(char, i);
-            }
-            break;
-          }
-          default: {
-            stack.pop();
-            break;
-          }
-        }
-        break;
-      }
-      case "INSIDE_LITERAL": {
-        const partialLiteral = input.substring(literalStart, i + 1);
-        if (!"false".startsWith(partialLiteral) && !"true".startsWith(partialLiteral) && !"null".startsWith(partialLiteral)) {
-          stack.pop();
-          if (stack[stack.length - 1] === "INSIDE_OBJECT_AFTER_VALUE") {
-            processAfterObjectValue(char, i);
-          } else if (stack[stack.length - 1] === "INSIDE_ARRAY_AFTER_VALUE") {
-            processAfterArrayValue(char, i);
-          }
-        } else {
-          lastValidIndex = i;
-        }
-        break;
-      }
-    }
-  }
-  let result = input.slice(0, lastValidIndex + 1);
-  for (let i = stack.length - 1; i >= 0; i--) {
-    const state = stack[i];
-    switch (state) {
-      case "INSIDE_STRING": {
-        result += '"';
-        break;
-      }
-      case "INSIDE_OBJECT_KEY":
-      case "INSIDE_OBJECT_AFTER_KEY":
-      case "INSIDE_OBJECT_AFTER_COMMA":
-      case "INSIDE_OBJECT_START":
-      case "INSIDE_OBJECT_BEFORE_VALUE":
-      case "INSIDE_OBJECT_AFTER_VALUE": {
-        result += "}";
-        break;
-      }
-      case "INSIDE_ARRAY_START":
-      case "INSIDE_ARRAY_AFTER_COMMA":
-      case "INSIDE_ARRAY_AFTER_VALUE": {
-        result += "]";
-        break;
-      }
-      case "INSIDE_LITERAL": {
-        const partialLiteral = input.substring(literalStart, input.length);
-        if ("true".startsWith(partialLiteral)) {
-          result += "true".slice(partialLiteral.length);
-        } else if ("false".startsWith(partialLiteral)) {
-          result += "false".slice(partialLiteral.length);
-        } else if ("null".startsWith(partialLiteral)) {
-          result += "null".slice(partialLiteral.length);
-        }
-      }
-    }
-  }
-  return result;
-}
-function parsePartialJson(jsonText) {
-  if (jsonText === void 0) {
-    return { value: void 0, state: "undefined-input" };
-  }
-  let result = safeParseJSON({ text: jsonText });
-  if (result.success) {
-    return { value: result.value, state: "successful-parse" };
-  }
-  result = safeParseJSON({ text: fixJson(jsonText) });
-  if (result.success) {
-    return { value: result.value, state: "repaired-parse" };
-  }
-  return { value: void 0, state: "failed-parse" };
-}
-var textStreamPart2 = {
-  code: "0",
-  name: "text",
-  parse: (value) => {
-    if (typeof value !== "string") {
-      throw new Error('"text" parts expect a string value.');
-    }
-    return { type: "text", value };
-  }
-};
-var dataStreamPart = {
-  code: "2",
-  name: "data",
-  parse: (value) => {
-    if (!Array.isArray(value)) {
-      throw new Error('"data" parts expect an array value.');
-    }
-    return { type: "data", value };
-  }
-};
-var errorStreamPart2 = {
-  code: "3",
-  name: "error",
-  parse: (value) => {
-    if (typeof value !== "string") {
-      throw new Error('"error" parts expect a string value.');
-    }
-    return { type: "error", value };
-  }
-};
-var messageAnnotationsStreamPart = {
-  code: "8",
-  name: "message_annotations",
-  parse: (value) => {
-    if (!Array.isArray(value)) {
-      throw new Error('"message_annotations" parts expect an array value.');
-    }
-    return { type: "message_annotations", value };
-  }
-};
-var toolCallStreamPart = {
-  code: "9",
-  name: "tool_call",
-  parse: (value) => {
-    if (value == null || typeof value !== "object" || !("toolCallId" in value) || typeof value.toolCallId !== "string" || !("toolName" in value) || typeof value.toolName !== "string" || !("args" in value) || typeof value.args !== "object") {
-      throw new Error(
-        '"tool_call" parts expect an object with a "toolCallId", "toolName", and "args" property.'
-      );
-    }
-    return {
-      type: "tool_call",
-      value
-    };
-  }
-};
-var toolResultStreamPart = {
-  code: "a",
-  name: "tool_result",
-  parse: (value) => {
-    if (value == null || typeof value !== "object" || !("toolCallId" in value) || typeof value.toolCallId !== "string" || !("result" in value)) {
-      throw new Error(
-        '"tool_result" parts expect an object with a "toolCallId" and a "result" property.'
-      );
-    }
-    return {
-      type: "tool_result",
-      value
-    };
-  }
-};
-var toolCallStreamingStartStreamPart = {
-  code: "b",
-  name: "tool_call_streaming_start",
-  parse: (value) => {
-    if (value == null || typeof value !== "object" || !("toolCallId" in value) || typeof value.toolCallId !== "string" || !("toolName" in value) || typeof value.toolName !== "string") {
-      throw new Error(
-        '"tool_call_streaming_start" parts expect an object with a "toolCallId" and "toolName" property.'
-      );
-    }
-    return {
-      type: "tool_call_streaming_start",
-      value
-    };
-  }
-};
-var toolCallDeltaStreamPart = {
-  code: "c",
-  name: "tool_call_delta",
-  parse: (value) => {
-    if (value == null || typeof value !== "object" || !("toolCallId" in value) || typeof value.toolCallId !== "string" || !("argsTextDelta" in value) || typeof value.argsTextDelta !== "string") {
-      throw new Error(
-        '"tool_call_delta" parts expect an object with a "toolCallId" and "argsTextDelta" property.'
-      );
-    }
-    return {
-      type: "tool_call_delta",
-      value
-    };
-  }
-};
-var finishMessageStreamPart = {
-  code: "d",
-  name: "finish_message",
-  parse: (value) => {
-    if (value == null || typeof value !== "object" || !("finishReason" in value) || typeof value.finishReason !== "string") {
-      throw new Error(
-        '"finish_message" parts expect an object with a "finishReason" property.'
-      );
-    }
-    const result = {
-      finishReason: value.finishReason
-    };
-    if ("usage" in value && value.usage != null && typeof value.usage === "object" && "promptTokens" in value.usage && "completionTokens" in value.usage) {
-      result.usage = {
-        promptTokens: typeof value.usage.promptTokens === "number" ? value.usage.promptTokens : Number.NaN,
-        completionTokens: typeof value.usage.completionTokens === "number" ? value.usage.completionTokens : Number.NaN
-      };
-    }
-    return {
-      type: "finish_message",
-      value: result
-    };
-  }
-};
-var finishStepStreamPart = {
-  code: "e",
-  name: "finish_step",
-  parse: (value) => {
-    if (value == null || typeof value !== "object" || !("finishReason" in value) || typeof value.finishReason !== "string") {
-      throw new Error(
-        '"finish_step" parts expect an object with a "finishReason" property.'
-      );
-    }
-    const result = {
-      finishReason: value.finishReason,
-      isContinued: false
-    };
-    if ("usage" in value && value.usage != null && typeof value.usage === "object" && "promptTokens" in value.usage && "completionTokens" in value.usage) {
-      result.usage = {
-        promptTokens: typeof value.usage.promptTokens === "number" ? value.usage.promptTokens : Number.NaN,
-        completionTokens: typeof value.usage.completionTokens === "number" ? value.usage.completionTokens : Number.NaN
-      };
-    }
-    if ("isContinued" in value && typeof value.isContinued === "boolean") {
-      result.isContinued = value.isContinued;
-    }
-    return {
-      type: "finish_step",
-      value: result
-    };
-  }
-};
-var startStepStreamPart = {
-  code: "f",
-  name: "start_step",
-  parse: (value) => {
-    if (value == null || typeof value !== "object" || !("messageId" in value) || typeof value.messageId !== "string") {
-      throw new Error(
-        '"start_step" parts expect an object with an "id" property.'
-      );
-    }
-    return {
-      type: "start_step",
-      value: {
-        messageId: value.messageId
-      }
-    };
-  }
-};
-var reasoningStreamPart = {
-  code: "g",
-  name: "reasoning",
-  parse: (value) => {
-    if (typeof value !== "string") {
-      throw new Error('"reasoning" parts expect a string value.');
-    }
-    return { type: "reasoning", value };
-  }
-};
-var sourcePart = {
-  code: "h",
-  name: "source",
-  parse: (value) => {
-    if (value == null || typeof value !== "object") {
-      throw new Error('"source" parts expect a Source object.');
-    }
-    return {
-      type: "source",
-      value
-    };
-  }
-};
-var redactedReasoningStreamPart = {
-  code: "i",
-  name: "redacted_reasoning",
-  parse: (value) => {
-    if (value == null || typeof value !== "object" || !("data" in value) || typeof value.data !== "string") {
-      throw new Error(
-        '"redacted_reasoning" parts expect an object with a "data" property.'
-      );
-    }
-    return { type: "redacted_reasoning", value: { data: value.data } };
-  }
-};
-var reasoningSignatureStreamPart = {
-  code: "j",
-  name: "reasoning_signature",
-  parse: (value) => {
-    if (value == null || typeof value !== "object" || !("signature" in value) || typeof value.signature !== "string") {
-      throw new Error(
-        '"reasoning_signature" parts expect an object with a "signature" property.'
-      );
-    }
-    return {
-      type: "reasoning_signature",
-      value: { signature: value.signature }
-    };
-  }
-};
-var fileStreamPart = {
-  code: "k",
-  name: "file",
-  parse: (value) => {
-    if (value == null || typeof value !== "object" || !("data" in value) || typeof value.data !== "string" || !("mimeType" in value) || typeof value.mimeType !== "string") {
-      throw new Error(
-        '"file" parts expect an object with a "data" and "mimeType" property.'
-      );
-    }
-    return { type: "file", value };
-  }
-};
-var dataStreamParts = [
-  textStreamPart2,
-  dataStreamPart,
-  errorStreamPart2,
-  messageAnnotationsStreamPart,
-  toolCallStreamPart,
-  toolResultStreamPart,
-  toolCallStreamingStartStreamPart,
-  toolCallDeltaStreamPart,
-  finishMessageStreamPart,
-  finishStepStreamPart,
-  startStepStreamPart,
-  reasoningStreamPart,
-  sourcePart,
-  redactedReasoningStreamPart,
-  reasoningSignatureStreamPart,
-  fileStreamPart
-];
-var dataStreamPartsByCode = Object.fromEntries(
-  dataStreamParts.map((part) => [part.code, part])
-);
-Object.fromEntries(
-  dataStreamParts.map((part) => [part.name, part.code])
-);
-var validCodes2 = dataStreamParts.map((part) => part.code);
-var parseDataStreamPart = (line) => {
-  const firstSeparatorIndex = line.indexOf(":");
-  if (firstSeparatorIndex === -1) {
-    throw new Error("Failed to parse stream string. No separator found.");
-  }
-  const prefix = line.slice(0, firstSeparatorIndex);
-  if (!validCodes2.includes(prefix)) {
-    throw new Error(`Failed to parse stream string. Invalid code ${prefix}.`);
-  }
-  const code = prefix;
-  const textValue = line.slice(firstSeparatorIndex + 1);
-  const jsonValue = JSON.parse(textValue);
-  return dataStreamPartsByCode[code].parse(jsonValue);
-};
-var NEWLINE = "\n".charCodeAt(0);
-function concatChunks(chunks, totalLength) {
-  const concatenatedChunks = new Uint8Array(totalLength);
-  let offset = 0;
-  for (const chunk of chunks) {
-    concatenatedChunks.set(chunk, offset);
-    offset += chunk.length;
-  }
-  chunks.length = 0;
-  return concatenatedChunks;
-}
-async function processDataStream({
-  stream,
-  onTextPart,
-  onReasoningPart,
-  onReasoningSignaturePart,
-  onRedactedReasoningPart,
-  onSourcePart,
-  onFilePart,
-  onDataPart,
-  onErrorPart,
-  onToolCallStreamingStartPart,
-  onToolCallDeltaPart,
-  onToolCallPart,
-  onToolResultPart,
-  onMessageAnnotationsPart,
-  onFinishMessagePart,
-  onFinishStepPart,
-  onStartStepPart
-}) {
-  const reader = stream.getReader();
-  const decoder = new TextDecoder();
-  const chunks = [];
-  let totalLength = 0;
-  while (true) {
-    const { value } = await reader.read();
-    if (value) {
-      chunks.push(value);
-      totalLength += value.length;
-      if (value[value.length - 1] !== NEWLINE) {
-        continue;
-      }
-    }
-    if (chunks.length === 0) {
-      break;
-    }
-    const concatenatedChunks = concatChunks(chunks, totalLength);
-    totalLength = 0;
-    const streamParts = decoder.decode(concatenatedChunks, { stream: true }).split("\n").filter((line) => line !== "").map(parseDataStreamPart);
-    for (const { type, value: value2 } of streamParts) {
-      switch (type) {
-        case "text":
-          await (onTextPart == null ? void 0 : onTextPart(value2));
-          break;
-        case "reasoning":
-          await (onReasoningPart == null ? void 0 : onReasoningPart(value2));
-          break;
-        case "reasoning_signature":
-          await (onReasoningSignaturePart == null ? void 0 : onReasoningSignaturePart(value2));
-          break;
-        case "redacted_reasoning":
-          await (onRedactedReasoningPart == null ? void 0 : onRedactedReasoningPart(value2));
-          break;
-        case "file":
-          await (onFilePart == null ? void 0 : onFilePart(value2));
-          break;
-        case "source":
-          await (onSourcePart == null ? void 0 : onSourcePart(value2));
-          break;
-        case "data":
-          await (onDataPart == null ? void 0 : onDataPart(value2));
-          break;
-        case "error":
-          await (onErrorPart == null ? void 0 : onErrorPart(value2));
-          break;
-        case "message_annotations":
-          await (onMessageAnnotationsPart == null ? void 0 : onMessageAnnotationsPart(value2));
-          break;
-        case "tool_call_streaming_start":
-          await (onToolCallStreamingStartPart == null ? void 0 : onToolCallStreamingStartPart(value2));
-          break;
-        case "tool_call_delta":
-          await (onToolCallDeltaPart == null ? void 0 : onToolCallDeltaPart(value2));
-          break;
-        case "tool_call":
-          await (onToolCallPart == null ? void 0 : onToolCallPart(value2));
-          break;
-        case "tool_result":
-          await (onToolResultPart == null ? void 0 : onToolResultPart(value2));
-          break;
-        case "finish_message":
-          await (onFinishMessagePart == null ? void 0 : onFinishMessagePart(value2));
-          break;
-        case "finish_step":
-          await (onFinishStepPart == null ? void 0 : onFinishStepPart(value2));
-          break;
-        case "start_step":
-          await (onStartStepPart == null ? void 0 : onStartStepPart(value2));
-          break;
-        default: {
-          const exhaustiveCheck = type;
-          throw new Error(`Unknown stream part type: ${exhaustiveCheck}`);
-        }
-      }
-    }
-  }
-}
-async function processChatResponse({
-  stream,
-  update,
-  onToolCall,
-  onFinish,
-  generateId: generateId2 = generateId,
-  getCurrentDate = () => /* @__PURE__ */ new Date(),
-  lastMessage
-}) {
-  var _a2, _b;
-  const replaceLastMessage = (lastMessage == null ? void 0 : lastMessage.role) === "assistant";
-  let step = replaceLastMessage ? 1 + // find max step in existing tool invocations:
-  ((_b = (_a2 = lastMessage.toolInvocations) == null ? void 0 : _a2.reduce((max, toolInvocation) => {
-    var _a22;
-    return Math.max(max, (_a22 = toolInvocation.step) != null ? _a22 : 0);
-  }, 0)) != null ? _b : 0) : 0;
-  const message = replaceLastMessage ? structuredClone(lastMessage) : {
-    id: generateId2(),
-    createdAt: getCurrentDate(),
-    role: "assistant",
-    content: "",
-    parts: []
-  };
-  let currentTextPart = void 0;
-  let currentReasoningPart = void 0;
-  let currentReasoningTextDetail = void 0;
-  function updateToolInvocationPart(toolCallId, invocation) {
-    const part = message.parts.find(
-      (part2) => part2.type === "tool-invocation" && part2.toolInvocation.toolCallId === toolCallId
-    );
-    if (part != null) {
-      part.toolInvocation = invocation;
-    } else {
-      message.parts.push({
-        type: "tool-invocation",
-        toolInvocation: invocation
-      });
-    }
-  }
-  const data = [];
-  let messageAnnotations = replaceLastMessage ? lastMessage == null ? void 0 : lastMessage.annotations : void 0;
-  const partialToolCalls = {};
-  let usage = {
-    completionTokens: NaN,
-    promptTokens: NaN,
-    totalTokens: NaN
-  };
-  let finishReason = "unknown";
-  function execUpdate() {
-    const copiedData = [...data];
-    if (messageAnnotations == null ? void 0 : messageAnnotations.length) {
-      message.annotations = messageAnnotations;
-    }
-    const copiedMessage = {
-      // deep copy the message to ensure that deep changes (msg attachments) are updated
-      // with SolidJS. SolidJS uses referential integration of sub-objects to detect changes.
-      ...structuredClone(message),
-      // add a revision id to ensure that the message is updated with SWR. SWR uses a
-      // hashing approach by default to detect changes, but it only works for shallow
-      // changes. This is why we need to add a revision id to ensure that the message
-      // is updated with SWR (without it, the changes get stuck in SWR and are not
-      // forwarded to rendering):
-      revisionId: generateId2()
-    };
-    update({
-      message: copiedMessage,
-      data: copiedData,
-      replaceLastMessage
-    });
-  }
-  await processDataStream({
-    stream,
-    onTextPart(value) {
-      if (currentTextPart == null) {
-        currentTextPart = {
-          type: "text",
-          text: value
-        };
-        message.parts.push(currentTextPart);
-      } else {
-        currentTextPart.text += value;
-      }
-      message.content += value;
-      execUpdate();
-    },
-    onReasoningPart(value) {
-      var _a22;
-      if (currentReasoningTextDetail == null) {
-        currentReasoningTextDetail = { type: "text", text: value };
-        if (currentReasoningPart != null) {
-          currentReasoningPart.details.push(currentReasoningTextDetail);
-        }
-      } else {
-        currentReasoningTextDetail.text += value;
-      }
-      if (currentReasoningPart == null) {
-        currentReasoningPart = {
-          type: "reasoning",
-          reasoning: value,
-          details: [currentReasoningTextDetail]
-        };
-        message.parts.push(currentReasoningPart);
-      } else {
-        currentReasoningPart.reasoning += value;
-      }
-      message.reasoning = ((_a22 = message.reasoning) != null ? _a22 : "") + value;
-      execUpdate();
-    },
-    onReasoningSignaturePart(value) {
-      if (currentReasoningTextDetail != null) {
-        currentReasoningTextDetail.signature = value.signature;
-      }
-    },
-    onRedactedReasoningPart(value) {
-      if (currentReasoningPart == null) {
-        currentReasoningPart = {
-          type: "reasoning",
-          reasoning: "",
-          details: []
-        };
-        message.parts.push(currentReasoningPart);
-      }
-      currentReasoningPart.details.push({
-        type: "redacted",
-        data: value.data
-      });
-      currentReasoningTextDetail = void 0;
-      execUpdate();
-    },
-    onFilePart(value) {
-      message.parts.push({
-        type: "file",
-        mimeType: value.mimeType,
-        data: value.data
-      });
-      execUpdate();
-    },
-    onSourcePart(value) {
-      message.parts.push({
-        type: "source",
-        source: value
-      });
-      execUpdate();
-    },
-    onToolCallStreamingStartPart(value) {
-      if (message.toolInvocations == null) {
-        message.toolInvocations = [];
-      }
-      partialToolCalls[value.toolCallId] = {
-        text: "",
-        step,
-        toolName: value.toolName,
-        index: message.toolInvocations.length
-      };
-      const invocation = {
-        state: "partial-call",
-        step,
-        toolCallId: value.toolCallId,
-        toolName: value.toolName,
-        args: void 0
-      };
-      message.toolInvocations.push(invocation);
-      updateToolInvocationPart(value.toolCallId, invocation);
-      execUpdate();
-    },
-    onToolCallDeltaPart(value) {
-      const partialToolCall = partialToolCalls[value.toolCallId];
-      partialToolCall.text += value.argsTextDelta;
-      const { value: partialArgs } = parsePartialJson(partialToolCall.text);
-      const invocation = {
-        state: "partial-call",
-        step: partialToolCall.step,
-        toolCallId: value.toolCallId,
-        toolName: partialToolCall.toolName,
-        args: partialArgs
-      };
-      message.toolInvocations[partialToolCall.index] = invocation;
-      updateToolInvocationPart(value.toolCallId, invocation);
-      execUpdate();
-    },
-    async onToolCallPart(value) {
-      const invocation = {
-        state: "call",
-        step,
-        ...value
-      };
-      if (partialToolCalls[value.toolCallId] != null) {
-        message.toolInvocations[partialToolCalls[value.toolCallId].index] = invocation;
-      } else {
-        if (message.toolInvocations == null) {
-          message.toolInvocations = [];
-        }
-        message.toolInvocations.push(invocation);
-      }
-      updateToolInvocationPart(value.toolCallId, invocation);
-      execUpdate();
-      if (onToolCall) {
-        const result = await onToolCall({ toolCall: value });
-        if (result != null) {
-          const invocation2 = {
-            state: "result",
-            step,
-            ...value,
-            result
-          };
-          message.toolInvocations[message.toolInvocations.length - 1] = invocation2;
-          updateToolInvocationPart(value.toolCallId, invocation2);
-          execUpdate();
-        }
-      }
-    },
-    onToolResultPart(value) {
-      const toolInvocations = message.toolInvocations;
-      if (toolInvocations == null) {
-        throw new Error("tool_result must be preceded by a tool_call");
-      }
-      const toolInvocationIndex = toolInvocations.findIndex(
-        (invocation2) => invocation2.toolCallId === value.toolCallId
-      );
-      if (toolInvocationIndex === -1) {
-        throw new Error(
-          "tool_result must be preceded by a tool_call with the same toolCallId"
-        );
-      }
-      const invocation = {
-        ...toolInvocations[toolInvocationIndex],
-        state: "result",
-        ...value
-      };
-      toolInvocations[toolInvocationIndex] = invocation;
-      updateToolInvocationPart(value.toolCallId, invocation);
-      execUpdate();
-    },
-    onDataPart(value) {
-      data.push(...value);
-      execUpdate();
-    },
-    onMessageAnnotationsPart(value) {
-      if (messageAnnotations == null) {
-        messageAnnotations = [...value];
-      } else {
-        messageAnnotations.push(...value);
-      }
-      execUpdate();
-    },
-    onFinishStepPart(value) {
-      step += 1;
-      currentTextPart = value.isContinued ? currentTextPart : void 0;
-      currentReasoningPart = void 0;
-      currentReasoningTextDetail = void 0;
-    },
-    onStartStepPart(value) {
-      if (!replaceLastMessage) {
-        message.id = value.messageId;
-      }
-      message.parts.push({ type: "step-start" });
-      execUpdate();
-    },
-    onFinishMessagePart(value) {
-      finishReason = value.finishReason;
-      if (value.usage != null) {
-        usage = calculateLanguageModelUsage(value.usage);
-      }
-    },
-    onErrorPart(error) {
-      throw new Error(error);
-    }
-  });
-  onFinish == null ? void 0 : onFinish({ message, finishReason, usage });
-}
-async function processTextStream({
-  stream,
-  onTextPart
-}) {
-  const reader = stream.pipeThrough(new TextDecoderStream()).getReader();
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) {
-      break;
-    }
-    await onTextPart(value);
-  }
-}
-async function processChatTextResponse({
-  stream,
-  update,
-  onFinish,
-  getCurrentDate = () => /* @__PURE__ */ new Date(),
-  generateId: generateId2 = generateId
-}) {
-  const textPart = { type: "text", text: "" };
-  const resultMessage = {
-    id: generateId2(),
-    createdAt: getCurrentDate(),
-    role: "assistant",
-    content: "",
-    parts: [textPart]
-  };
-  await processTextStream({
-    stream,
-    onTextPart: (chunk) => {
-      resultMessage.content += chunk;
-      textPart.text += chunk;
-      update({
-        message: { ...resultMessage },
-        data: [],
-        replaceLastMessage: false
-      });
-    }
-  });
-  onFinish == null ? void 0 : onFinish(resultMessage, {
-    usage: { completionTokens: NaN, promptTokens: NaN, totalTokens: NaN },
-    finishReason: "unknown"
-  });
-}
-var getOriginalFetch = () => fetch;
-async function callChatApi({
-  api,
-  body,
-  streamProtocol = "data",
-  credentials,
-  headers,
-  abortController,
-  restoreMessagesOnFailure,
-  onResponse,
-  onUpdate,
-  onFinish,
-  onToolCall,
-  generateId: generateId2,
-  fetch: fetch2 = getOriginalFetch(),
-  lastMessage,
-  requestType = "generate"
-}) {
-  var _a2, _b, _c;
-  const request = requestType === "resume" ? fetch2(`${api}?chatId=${body.id}`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      ...headers
-    },
-    signal: (_a2 = abortController == null ? void 0 : abortController()) == null ? void 0 : _a2.signal,
-    credentials
-  }) : fetch2(api, {
-    method: "POST",
-    body: JSON.stringify(body),
-    headers: {
-      "Content-Type": "application/json",
-      ...headers
-    },
-    signal: (_b = abortController == null ? void 0 : abortController()) == null ? void 0 : _b.signal,
-    credentials
-  });
-  const response = await request.catch((err) => {
-    restoreMessagesOnFailure();
-    throw err;
-  });
-  if (onResponse) {
-    try {
-      await onResponse(response);
-    } catch (err) {
-      throw err;
-    }
-  }
-  if (!response.ok) {
-    restoreMessagesOnFailure();
-    throw new Error(
-      (_c = await response.text()) != null ? _c : "Failed to fetch the chat response."
-    );
-  }
-  if (!response.body) {
-    throw new Error("The response body is empty.");
-  }
-  switch (streamProtocol) {
-    case "text": {
-      await processChatTextResponse({
-        stream: response.body,
-        update: onUpdate,
-        onFinish,
-        generateId: generateId2
-      });
-      return;
-    }
-    case "data": {
-      await processChatResponse({
-        stream: response.body,
-        update: onUpdate,
-        lastMessage,
-        onToolCall,
-        onFinish({ message, finishReason, usage }) {
-          if (onFinish && message != null) {
-            onFinish(message, { usage, finishReason });
-          }
-        },
-        generateId: generateId2
-      });
-      return;
-    }
-    default: {
-      const exhaustiveCheck = streamProtocol;
-      throw new Error(`Unknown stream protocol: ${exhaustiveCheck}`);
-    }
-  }
-}
-function extractMaxToolInvocationStep(toolInvocations) {
-  return toolInvocations == null ? void 0 : toolInvocations.reduce((max, toolInvocation) => {
-    var _a2;
-    return Math.max(max, (_a2 = toolInvocation.step) != null ? _a2 : 0);
-  }, 0);
-}
-function getMessageParts(message) {
-  var _a2;
-  return (_a2 = message.parts) != null ? _a2 : [
-    ...message.toolInvocations ? message.toolInvocations.map((toolInvocation) => ({
-      type: "tool-invocation",
-      toolInvocation
-    })) : [],
-    ...message.reasoning ? [
-      {
-        type: "reasoning",
-        reasoning: message.reasoning,
-        details: [{ type: "text", text: message.reasoning }]
-      }
-    ] : [],
-    ...message.content ? [{ type: "text", text: message.content }] : []
-  ];
-}
-function fillMessageParts(messages) {
-  return messages.map((message) => ({
-    ...message,
-    parts: getMessageParts(message)
-  }));
-}
-function isDeepEqualData(obj1, obj2) {
-  if (obj1 === obj2)
-    return true;
-  if (obj1 == null || obj2 == null)
-    return false;
-  if (typeof obj1 !== "object" && typeof obj2 !== "object")
-    return obj1 === obj2;
-  if (obj1.constructor !== obj2.constructor)
-    return false;
-  if (obj1 instanceof Date && obj2 instanceof Date) {
-    return obj1.getTime() === obj2.getTime();
-  }
-  if (Array.isArray(obj1)) {
-    if (obj1.length !== obj2.length)
-      return false;
-    for (let i = 0; i < obj1.length; i++) {
-      if (!isDeepEqualData(obj1[i], obj2[i]))
-        return false;
-    }
-    return true;
-  }
-  const keys1 = Object.keys(obj1);
-  const keys2 = Object.keys(obj2);
-  if (keys1.length !== keys2.length)
-    return false;
-  for (const key of keys1) {
-    if (!keys2.includes(key))
-      return false;
-    if (!isDeepEqualData(obj1[key], obj2[key]))
-      return false;
-  }
-  return true;
-}
-async function prepareAttachmentsForRequest(attachmentsFromOptions) {
-  if (!attachmentsFromOptions) {
-    return [];
-  }
-  if (globalThis.FileList && attachmentsFromOptions instanceof globalThis.FileList) {
-    return Promise.all(
-      Array.from(attachmentsFromOptions).map(async (attachment) => {
-        const { name, type } = attachment;
-        const dataUrl = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = (readerEvent) => {
-            var _a2;
-            resolve((_a2 = readerEvent.target) == null ? void 0 : _a2.result);
-          };
-          reader.onerror = (error) => reject(error);
-          reader.readAsDataURL(attachment);
-        });
-        return {
-          name,
-          contentType: type,
-          url: dataUrl
-        };
-      })
-    );
-  }
-  if (Array.isArray(attachmentsFromOptions)) {
-    return attachmentsFromOptions;
-  }
-  throw new Error("Invalid attachments type");
-}
-function shouldResubmitMessages({
-  originalMaxToolInvocationStep,
-  originalMessageCount,
-  maxSteps,
-  messages
-}) {
-  var _a2;
-  const lastMessage = messages[messages.length - 1];
-  return (
-    // check if the feature is enabled:
-    maxSteps > 1 && // ensure there is a last message:
-    lastMessage != null && // ensure we actually have new steps (to prevent infinite loops in case of errors):
-    (messages.length > originalMessageCount || extractMaxToolInvocationStep(lastMessage.toolInvocations) !== originalMaxToolInvocationStep) && // check that next step is possible:
-    isAssistantMessageWithCompletedToolCalls(lastMessage) && // limit the number of automatic steps:
-    ((_a2 = extractMaxToolInvocationStep(lastMessage.toolInvocations)) != null ? _a2 : 0) < maxSteps
-  );
-}
-function isAssistantMessageWithCompletedToolCalls(message) {
-  if (message.role !== "assistant") {
-    return false;
-  }
-  const lastStepStartIndex = message.parts.reduce((lastIndex, part, index) => {
-    return part.type === "step-start" ? index : lastIndex;
-  }, -1);
-  const lastStepToolInvocations = message.parts.slice(lastStepStartIndex + 1).filter((part) => part.type === "tool-invocation");
-  return lastStepToolInvocations.length > 0 && lastStepToolInvocations.every((part) => "result" in part.toolInvocation);
-}
-function updateToolCallResult({
-  messages,
-  toolCallId,
-  toolResult: result
-}) {
-  var _a2;
-  const lastMessage = messages[messages.length - 1];
-  const invocationPart = lastMessage.parts.find(
-    (part) => part.type === "tool-invocation" && part.toolInvocation.toolCallId === toolCallId
-  );
-  if (invocationPart == null) {
-    return;
-  }
-  const toolResult = {
-    ...invocationPart.toolInvocation,
-    state: "result",
-    result
-  };
-  invocationPart.toolInvocation = toolResult;
-  lastMessage.toolInvocations = (_a2 = lastMessage.toolInvocations) == null ? void 0 : _a2.map(
-    (toolInvocation) => toolInvocation.toolCallId === toolCallId ? toolResult : toolInvocation
-  );
-}
-var shim$1 = { exports: {} };
-var useSyncExternalStoreShim_production = {};
-/**
- * @license React
- * use-sync-external-store-shim.production.js
- *
- * Copyright (c) Meta Platforms, Inc. and affiliates.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
-var React = reactExports;
-function is(x2, y2) {
-  return x2 === y2 && (0 !== x2 || 1 / x2 === 1 / y2) || x2 !== x2 && y2 !== y2;
-}
-var objectIs = "function" === typeof Object.is ? Object.is : is, useState = React.useState, useEffect = React.useEffect, useLayoutEffect = React.useLayoutEffect, useDebugValue = React.useDebugValue;
-function useSyncExternalStore$2(subscribe, getSnapshot) {
-  var value = getSnapshot(), _useState = useState({ inst: { value, getSnapshot } }), inst = _useState[0].inst, forceUpdate = _useState[1];
-  useLayoutEffect(
-    function() {
-      inst.value = value;
-      inst.getSnapshot = getSnapshot;
-      checkIfSnapshotChanged(inst) && forceUpdate({ inst });
-    },
-    [subscribe, value, getSnapshot]
-  );
-  useEffect(
-    function() {
-      checkIfSnapshotChanged(inst) && forceUpdate({ inst });
-      return subscribe(function() {
-        checkIfSnapshotChanged(inst) && forceUpdate({ inst });
-      });
-    },
-    [subscribe]
-  );
-  useDebugValue(value);
-  return value;
-}
-function checkIfSnapshotChanged(inst) {
-  var latestGetSnapshot = inst.getSnapshot;
-  inst = inst.value;
-  try {
-    var nextValue = latestGetSnapshot();
-    return !objectIs(inst, nextValue);
-  } catch (error) {
-    return true;
-  }
-}
-function useSyncExternalStore$1(subscribe, getSnapshot) {
-  return getSnapshot();
-}
-var shim = "undefined" === typeof window || "undefined" === typeof window.document || "undefined" === typeof window.document.createElement ? useSyncExternalStore$1 : useSyncExternalStore$2;
-useSyncExternalStoreShim_production.useSyncExternalStore = void 0 !== React.useSyncExternalStore ? React.useSyncExternalStore : shim;
-{
-  shim$1.exports = useSyncExternalStoreShim_production;
-}
-var shimExports = shim$1.exports;
-const FOCUS_EVENT = 0;
-const RECONNECT_EVENT = 1;
-const MUTATE_EVENT = 2;
-const ERROR_REVALIDATE_EVENT = 3;
-var has = Object.prototype.hasOwnProperty;
-function dequal(foo, bar) {
-  var ctor, len;
-  if (foo === bar) return true;
-  if (foo && bar && (ctor = foo.constructor) === bar.constructor) {
-    if (ctor === Date) return foo.getTime() === bar.getTime();
-    if (ctor === RegExp) return foo.toString() === bar.toString();
-    if (ctor === Array) {
-      if ((len = foo.length) === bar.length) {
-        while (len-- && dequal(foo[len], bar[len])) ;
-      }
-      return len === -1;
-    }
-    if (!ctor || typeof foo === "object") {
-      len = 0;
-      for (ctor in foo) {
-        if (has.call(foo, ctor) && ++len && !has.call(bar, ctor)) return false;
-        if (!(ctor in bar) || !dequal(foo[ctor], bar[ctor])) return false;
-      }
-      return Object.keys(bar).length === len;
-    }
-  }
-  return foo !== foo && bar !== bar;
-}
-const SWRGlobalState = /* @__PURE__ */ new WeakMap();
-const noop = () => {
-};
-const UNDEFINED = (
-  /*#__NOINLINE__*/
-  noop()
-);
-const OBJECT = Object;
-const isUndefined = (v2) => v2 === UNDEFINED;
-const isFunction = (v2) => typeof v2 == "function";
-const mergeObjects = (a, b) => ({
-  ...a,
-  ...b
-});
-const isPromiseLike = (x2) => isFunction(x2.then);
-const EMPTY_CACHE = {};
-const INITIAL_CACHE = {};
-const STR_UNDEFINED = "undefined";
-const isWindowDefined = typeof window != STR_UNDEFINED;
-const isDocumentDefined = typeof document != STR_UNDEFINED;
-const isLegacyDeno = isWindowDefined && "Deno" in window;
-const hasRequestAnimationFrame = () => isWindowDefined && typeof window["requestAnimationFrame"] != STR_UNDEFINED;
-const createCacheHelper = (cache2, key) => {
-  const state = SWRGlobalState.get(cache2);
-  return [
-    // Getter
-    () => !isUndefined(key) && cache2.get(key) || EMPTY_CACHE,
-    // Setter
-    (info) => {
-      if (!isUndefined(key)) {
-        const prev = cache2.get(key);
-        if (!(key in INITIAL_CACHE)) {
-          INITIAL_CACHE[key] = prev;
-        }
-        state[5](key, mergeObjects(prev, info), prev || EMPTY_CACHE);
-      }
-    },
-    // Subscriber
-    state[6],
-    // Get server cache snapshot
-    () => {
-      if (!isUndefined(key)) {
-        if (key in INITIAL_CACHE) return INITIAL_CACHE[key];
-      }
-      return !isUndefined(key) && cache2.get(key) || EMPTY_CACHE;
-    }
-  ];
-};
-let online = true;
-const isOnline = () => online;
-const [onWindowEvent, offWindowEvent] = isWindowDefined && window.addEventListener ? [
-  window.addEventListener.bind(window),
-  window.removeEventListener.bind(window)
-] : [
-  noop,
-  noop
-];
-const isVisible = () => {
-  const visibilityState = isDocumentDefined && document.visibilityState;
-  return isUndefined(visibilityState) || visibilityState !== "hidden";
-};
-const initFocus = (callback) => {
-  if (isDocumentDefined) {
-    document.addEventListener("visibilitychange", callback);
-  }
-  onWindowEvent("focus", callback);
-  return () => {
-    if (isDocumentDefined) {
-      document.removeEventListener("visibilitychange", callback);
-    }
-    offWindowEvent("focus", callback);
-  };
-};
-const initReconnect = (callback) => {
-  const onOnline = () => {
-    online = true;
-    callback();
-  };
-  const onOffline = () => {
-    online = false;
-  };
-  onWindowEvent("online", onOnline);
-  onWindowEvent("offline", onOffline);
-  return () => {
-    offWindowEvent("online", onOnline);
-    offWindowEvent("offline", onOffline);
-  };
-};
-const preset = {
-  isOnline,
-  isVisible
-};
-const defaultConfigOptions = {
-  initFocus,
-  initReconnect
-};
-const IS_REACT_LEGACY = !React$1.useId;
-const IS_SERVER = !isWindowDefined || isLegacyDeno;
-const rAF = (f2) => hasRequestAnimationFrame() ? window["requestAnimationFrame"](f2) : setTimeout(f2, 1);
-const useIsomorphicLayoutEffect = IS_SERVER ? reactExports.useEffect : reactExports.useLayoutEffect;
-const navigatorConnection = typeof navigator !== "undefined" && navigator.connection;
-const slowConnection = !IS_SERVER && navigatorConnection && ([
-  "slow-2g",
-  "2g"
-].includes(navigatorConnection.effectiveType) || navigatorConnection.saveData);
-const table = /* @__PURE__ */ new WeakMap();
-const getTypeName = (value) => OBJECT.prototype.toString.call(value);
-const isObjectTypeName = (typeName, type) => typeName === `[object ${type}]`;
-let counter = 0;
-const stableHash = (arg) => {
-  const type = typeof arg;
-  const typeName = getTypeName(arg);
-  const isDate = isObjectTypeName(typeName, "Date");
-  const isRegex = isObjectTypeName(typeName, "RegExp");
-  const isPlainObject = isObjectTypeName(typeName, "Object");
-  let result;
-  let index;
-  if (OBJECT(arg) === arg && !isDate && !isRegex) {
-    result = table.get(arg);
-    if (result) return result;
-    result = ++counter + "~";
-    table.set(arg, result);
-    if (Array.isArray(arg)) {
-      result = "@";
-      for (index = 0; index < arg.length; index++) {
-        result += stableHash(arg[index]) + ",";
-      }
-      table.set(arg, result);
-    }
-    if (isPlainObject) {
-      result = "#";
-      const keys = OBJECT.keys(arg).sort();
-      while (!isUndefined(index = keys.pop())) {
-        if (!isUndefined(arg[index])) {
-          result += index + ":" + stableHash(arg[index]) + ",";
-        }
-      }
-      table.set(arg, result);
-    }
-  } else {
-    result = isDate ? arg.toJSON() : type == "symbol" ? arg.toString() : type == "string" ? JSON.stringify(arg) : "" + arg;
-  }
-  return result;
-};
-const serialize = (key) => {
-  if (isFunction(key)) {
-    try {
-      key = key();
-    } catch (err) {
-      key = "";
-    }
-  }
-  const args = key;
-  key = typeof key == "string" ? key : (Array.isArray(key) ? key.length : key) ? stableHash(key) : "";
-  return [
-    key,
-    args
-  ];
-};
-let __timestamp = 0;
-const getTimestamp = () => ++__timestamp;
-async function internalMutate(...args) {
-  const [cache2, _key, _data, _opts] = args;
-  const options = mergeObjects({
-    populateCache: true,
-    throwOnError: true
-  }, typeof _opts === "boolean" ? {
-    revalidate: _opts
-  } : _opts || {});
-  let populateCache = options.populateCache;
-  const rollbackOnErrorOption = options.rollbackOnError;
-  let optimisticData = options.optimisticData;
-  const rollbackOnError = (error) => {
-    return typeof rollbackOnErrorOption === "function" ? rollbackOnErrorOption(error) : rollbackOnErrorOption !== false;
-  };
-  const throwOnError = options.throwOnError;
-  if (isFunction(_key)) {
-    const keyFilter = _key;
-    const matchedKeys = [];
-    const it = cache2.keys();
-    for (const key of it) {
-      if (
-        // Skip the special useSWRInfinite and useSWRSubscription keys.
-        !/^\$(inf|sub)\$/.test(key) && keyFilter(cache2.get(key)._k)
-      ) {
-        matchedKeys.push(key);
-      }
-    }
-    return Promise.all(matchedKeys.map(mutateByKey));
-  }
-  return mutateByKey(_key);
-  async function mutateByKey(_k) {
-    const [key] = serialize(_k);
-    if (!key) return;
-    const [get, set] = createCacheHelper(cache2, key);
-    const [EVENT_REVALIDATORS, MUTATION, FETCH, PRELOAD] = SWRGlobalState.get(cache2);
-    const startRevalidate = () => {
-      const revalidators = EVENT_REVALIDATORS[key];
-      const revalidate = isFunction(options.revalidate) ? options.revalidate(get().data, _k) : options.revalidate !== false;
-      if (revalidate) {
-        delete FETCH[key];
-        delete PRELOAD[key];
-        if (revalidators && revalidators[0]) {
-          return revalidators[0](MUTATE_EVENT).then(() => get().data);
-        }
-      }
-      return get().data;
-    };
-    if (args.length < 3) {
-      return startRevalidate();
-    }
-    let data = _data;
-    let error;
-    let isError = false;
-    const beforeMutationTs = getTimestamp();
-    MUTATION[key] = [
-      beforeMutationTs,
-      0
-    ];
-    const hasOptimisticData = !isUndefined(optimisticData);
-    const state = get();
-    const displayedData = state.data;
-    const currentData = state._c;
-    const committedData = isUndefined(currentData) ? displayedData : currentData;
-    if (hasOptimisticData) {
-      optimisticData = isFunction(optimisticData) ? optimisticData(committedData, displayedData) : optimisticData;
-      set({
-        data: optimisticData,
-        _c: committedData
-      });
-    }
-    if (isFunction(data)) {
-      try {
-        data = data(committedData);
-      } catch (err) {
-        error = err;
-        isError = true;
-      }
-    }
-    if (data && isPromiseLike(data)) {
-      data = await data.catch((err) => {
-        error = err;
-        isError = true;
-      });
-      if (beforeMutationTs !== MUTATION[key][0]) {
-        if (isError) throw error;
-        return data;
-      } else if (isError && hasOptimisticData && rollbackOnError(error)) {
-        populateCache = true;
-        set({
-          data: committedData,
-          _c: UNDEFINED
-        });
-      }
-    }
-    if (populateCache) {
-      if (!isError) {
-        if (isFunction(populateCache)) {
-          const populateCachedData = populateCache(data, committedData);
-          set({
-            data: populateCachedData,
-            error: UNDEFINED,
-            _c: UNDEFINED
-          });
-        } else {
-          set({
-            data,
-            error: UNDEFINED,
-            _c: UNDEFINED
-          });
-        }
-      }
-    }
-    MUTATION[key][1] = getTimestamp();
-    Promise.resolve(startRevalidate()).then(() => {
-      set({
-        _c: UNDEFINED
-      });
-    });
-    if (isError) {
-      if (throwOnError) throw error;
-      return;
-    }
-    return data;
-  }
-}
-const revalidateAllKeys = (revalidators, type) => {
-  for (const key in revalidators) {
-    if (revalidators[key][0]) revalidators[key][0](type);
-  }
-};
-const initCache = (provider, options) => {
-  if (!SWRGlobalState.has(provider)) {
-    const opts = mergeObjects(defaultConfigOptions, options);
-    const EVENT_REVALIDATORS = /* @__PURE__ */ Object.create(null);
-    const mutate2 = internalMutate.bind(UNDEFINED, provider);
-    let unmount = noop;
-    const subscriptions = /* @__PURE__ */ Object.create(null);
-    const subscribe = (key, callback) => {
-      const subs = subscriptions[key] || [];
-      subscriptions[key] = subs;
-      subs.push(callback);
-      return () => subs.splice(subs.indexOf(callback), 1);
-    };
-    const setter = (key, value, prev) => {
-      provider.set(key, value);
-      const subs = subscriptions[key];
-      if (subs) {
-        for (const fn of subs) {
-          fn(value, prev);
-        }
-      }
-    };
-    const initProvider = () => {
-      if (!SWRGlobalState.has(provider)) {
-        SWRGlobalState.set(provider, [
-          EVENT_REVALIDATORS,
-          /* @__PURE__ */ Object.create(null),
-          /* @__PURE__ */ Object.create(null),
-          /* @__PURE__ */ Object.create(null),
-          mutate2,
-          setter,
-          subscribe
-        ]);
-        if (!IS_SERVER) {
-          const releaseFocus = opts.initFocus(setTimeout.bind(UNDEFINED, revalidateAllKeys.bind(UNDEFINED, EVENT_REVALIDATORS, FOCUS_EVENT)));
-          const releaseReconnect = opts.initReconnect(setTimeout.bind(UNDEFINED, revalidateAllKeys.bind(UNDEFINED, EVENT_REVALIDATORS, RECONNECT_EVENT)));
-          unmount = () => {
-            releaseFocus && releaseFocus();
-            releaseReconnect && releaseReconnect();
-            SWRGlobalState.delete(provider);
-          };
-        }
-      }
-    };
-    initProvider();
-    return [
-      provider,
-      mutate2,
-      initProvider,
-      unmount
-    ];
-  }
-  return [
-    provider,
-    SWRGlobalState.get(provider)[4]
-  ];
-};
-const onErrorRetry = (_, __, config, revalidate, opts) => {
-  const maxRetryCount = config.errorRetryCount;
-  const currentRetryCount = opts.retryCount;
-  const timeout = ~~((Math.random() + 0.5) * (1 << (currentRetryCount < 8 ? currentRetryCount : 8))) * config.errorRetryInterval;
-  if (!isUndefined(maxRetryCount) && currentRetryCount > maxRetryCount) {
-    return;
-  }
-  setTimeout(revalidate, timeout, opts);
-};
-const compare = dequal;
-const [cache, mutate] = initCache(/* @__PURE__ */ new Map());
-const defaultConfig = mergeObjects(
-  {
-    // events
-    onLoadingSlow: noop,
-    onSuccess: noop,
-    onError: noop,
-    onErrorRetry,
-    onDiscarded: noop,
-    // switches
-    revalidateOnFocus: true,
-    revalidateOnReconnect: true,
-    revalidateIfStale: true,
-    shouldRetryOnError: true,
-    // timeouts
-    errorRetryInterval: slowConnection ? 1e4 : 5e3,
-    focusThrottleInterval: 5 * 1e3,
-    dedupingInterval: 2 * 1e3,
-    loadingTimeout: slowConnection ? 5e3 : 3e3,
-    // providers
-    compare,
-    isPaused: () => false,
-    cache,
-    mutate,
-    fallback: {}
-  },
-  // use web preset by default
-  preset
-);
-const mergeConfigs = (a, b) => {
-  const v2 = mergeObjects(a, b);
-  if (b) {
-    const { use: u1, fallback: f1 } = a;
-    const { use: u2, fallback: f2 } = b;
-    if (u1 && u2) {
-      v2.use = u1.concat(u2);
-    }
-    if (f1 && f2) {
-      v2.fallback = mergeObjects(f1, f2);
-    }
-  }
-  return v2;
-};
-const SWRConfigContext = reactExports.createContext({});
-const INFINITE_PREFIX = "$inf$";
-const enableDevtools = isWindowDefined && window.__SWR_DEVTOOLS_USE__;
-const use$1 = enableDevtools ? window.__SWR_DEVTOOLS_USE__ : [];
-const setupDevTools = () => {
-  if (enableDevtools) {
-    window.__SWR_DEVTOOLS_REACT__ = React$1;
-  }
-};
-const normalize = (args) => {
-  return isFunction(args[1]) ? [
-    args[0],
-    args[1],
-    args[2] || {}
-  ] : [
-    args[0],
-    null,
-    (args[1] === null ? args[2] : args[1]) || {}
-  ];
-};
-const useSWRConfig = () => {
-  const parentConfig = reactExports.useContext(SWRConfigContext);
-  const mergedConfig = reactExports.useMemo(() => mergeObjects(defaultConfig, parentConfig), [
-    parentConfig
-  ]);
-  return mergedConfig;
-};
-const middleware = (useSWRNext) => (key_, fetcher_, config) => {
-  const fetcher = fetcher_ && ((...args) => {
-    const [key] = serialize(key_);
-    const [, , , PRELOAD] = SWRGlobalState.get(cache);
-    if (key.startsWith(INFINITE_PREFIX)) {
-      return fetcher_(...args);
-    }
-    const req = PRELOAD[key];
-    if (isUndefined(req)) return fetcher_(...args);
-    delete PRELOAD[key];
-    return req;
-  });
-  return useSWRNext(key_, fetcher, config);
-};
-const BUILT_IN_MIDDLEWARE = use$1.concat(middleware);
-const withArgs = (hook) => {
-  return function useSWRArgs(...args) {
-    const fallbackConfig = useSWRConfig();
-    const [key, fn, _config] = normalize(args);
-    const config = mergeConfigs(fallbackConfig, _config);
-    let next = hook;
-    const { use: use2 } = config;
-    const middleware2 = (use2 || []).concat(BUILT_IN_MIDDLEWARE);
-    for (let i = middleware2.length; i--; ) {
-      next = middleware2[i](next);
-    }
-    return next(key, fn || config.fetcher || null, config);
-  };
-};
-const subscribeCallback = (key, callbacks, callback) => {
-  const keyedRevalidators = callbacks[key] || (callbacks[key] = []);
-  keyedRevalidators.push(callback);
-  return () => {
-    const index = keyedRevalidators.indexOf(callback);
-    if (index >= 0) {
-      keyedRevalidators[index] = keyedRevalidators[keyedRevalidators.length - 1];
-      keyedRevalidators.pop();
-    }
-  };
-};
-setupDevTools();
-const use = React$1.use || // This extra generic is to avoid TypeScript mixing up the generic and JSX sytax
-// and emitting an error.
-// We assume that this is only for the `use(thenable)` case, not `use(context)`.
-// https://github.com/facebook/react/blob/aed00dacfb79d17c53218404c52b1c7aa59c4a89/packages/react-server/src/ReactFizzThenable.js#L45
-((thenable) => {
-  switch (thenable.status) {
-    case "pending":
-      throw thenable;
-    case "fulfilled":
-      return thenable.value;
-    case "rejected":
-      throw thenable.reason;
-    default:
-      thenable.status = "pending";
-      thenable.then((v2) => {
-        thenable.status = "fulfilled";
-        thenable.value = v2;
-      }, (e) => {
-        thenable.status = "rejected";
-        thenable.reason = e;
-      });
-      throw thenable;
-  }
-});
-const WITH_DEDUPE = {
-  dedupe: true
-};
-const resolvedUndef = Promise.resolve(UNDEFINED);
-const sub = () => noop;
-const useSWRHandler = (_key, fetcher, config) => {
-  const { cache: cache2, compare: compare2, suspense, fallbackData, revalidateOnMount, revalidateIfStale, refreshInterval, refreshWhenHidden, refreshWhenOffline, keepPreviousData, strictServerPrefetchWarning } = config;
-  const [EVENT_REVALIDATORS, MUTATION, FETCH, PRELOAD] = SWRGlobalState.get(cache2);
-  const [key, fnArg] = serialize(_key);
-  const initialMountedRef = reactExports.useRef(false);
-  const unmountedRef = reactExports.useRef(false);
-  const keyRef = reactExports.useRef(key);
-  const fetcherRef = reactExports.useRef(fetcher);
-  const configRef = reactExports.useRef(config);
-  const getConfig = () => configRef.current;
-  const isActive = () => getConfig().isVisible() && getConfig().isOnline();
-  const [getCache, setCache, subscribeCache, getInitialCache] = createCacheHelper(cache2, key);
-  const stateDependencies = reactExports.useRef({}).current;
-  const fallback = isUndefined(fallbackData) ? isUndefined(config.fallback) ? UNDEFINED : config.fallback[key] : fallbackData;
-  const isEqual = (prev, current) => {
-    for (const _ in stateDependencies) {
-      const t2 = _;
-      if (t2 === "data") {
-        if (!compare2(prev[t2], current[t2])) {
-          if (!isUndefined(prev[t2])) {
-            return false;
-          }
-          if (!compare2(returnedData, current[t2])) {
-            return false;
-          }
-        }
-      } else {
-        if (current[t2] !== prev[t2]) {
-          return false;
-        }
-      }
-    }
-    return true;
-  };
-  const isInitialMount = !initialMountedRef.current;
-  const getSnapshot = reactExports.useMemo(() => {
-    const cachedData2 = getCache();
-    const initialData = getInitialCache();
-    const getSelectedCache = (state) => {
-      const snapshot = mergeObjects(state);
-      delete snapshot._k;
-      const shouldStartRequest = (() => {
-        if (!key) return false;
-        if (!fetcher) return false;
-        if (getConfig().isPaused()) return false;
-        if (isInitialMount && !isUndefined(revalidateOnMount)) return revalidateOnMount;
-        const data2 = !isUndefined(fallback) ? fallback : snapshot.data;
-        if (suspense) return isUndefined(data2) || revalidateIfStale;
-        return isUndefined(data2) || revalidateIfStale;
-      })();
-      if (!shouldStartRequest) {
-        return snapshot;
-      }
-      return {
-        isValidating: true,
-        isLoading: true,
-        ...snapshot
-      };
-    };
-    const clientSnapshot = getSelectedCache(cachedData2);
-    const serverSnapshot = cachedData2 === initialData ? clientSnapshot : getSelectedCache(initialData);
-    let memorizedSnapshot = clientSnapshot;
-    return [
-      () => {
-        const newSnapshot = getSelectedCache(getCache());
-        const compareResult = isEqual(newSnapshot, memorizedSnapshot);
-        if (compareResult) {
-          memorizedSnapshot.data = newSnapshot.data;
-          memorizedSnapshot.isLoading = newSnapshot.isLoading;
-          memorizedSnapshot.isValidating = newSnapshot.isValidating;
-          memorizedSnapshot.error = newSnapshot.error;
-          return memorizedSnapshot;
-        } else {
-          memorizedSnapshot = newSnapshot;
-          return newSnapshot;
-        }
-      },
-      () => serverSnapshot
-    ];
-  }, [
-    cache2,
-    key
-  ]);
-  const cached = shimExports.useSyncExternalStore(reactExports.useCallback(
-    (callback) => subscribeCache(key, (current, prev) => {
-      if (!isEqual(prev, current)) callback();
-    }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [
-      cache2,
-      key
-    ]
-  ), getSnapshot[0], getSnapshot[1]);
-  const hasRevalidator = EVENT_REVALIDATORS[key] && EVENT_REVALIDATORS[key].length > 0;
-  const cachedData = cached.data;
-  const data = isUndefined(cachedData) ? fallback && isPromiseLike(fallback) ? use(fallback) : fallback : cachedData;
-  const error = cached.error;
-  const laggyDataRef = reactExports.useRef(data);
-  const returnedData = keepPreviousData ? isUndefined(cachedData) ? isUndefined(laggyDataRef.current) ? data : laggyDataRef.current : cachedData : data;
-  const hasKeyButNoData = key && isUndefined(data);
-  const hydrationRef = reactExports.useRef(null);
-  !IS_SERVER && // getServerSnapshot is only called during hydration
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  shimExports.useSyncExternalStore(sub, () => {
-    hydrationRef.current = false;
-    return hydrationRef;
-  }, () => {
-    hydrationRef.current = true;
-    return hydrationRef;
-  });
-  const isHydration = hydrationRef.current;
-  if (strictServerPrefetchWarning && isHydration && !suspense && hasKeyButNoData) {
-    console.warn(`Missing pre-initiated data for serialized key "${key}" during server-side rendering. Data fetching should be initiated on the server and provided to SWR via fallback data. You can set "strictServerPrefetchWarning: false" to disable this warning.`);
-  }
-  const shouldDoInitialRevalidation = (() => {
-    if (!key || !fetcher) return false;
-    if (getConfig().isPaused()) return false;
-    if (hasRevalidator && !isUndefined(error)) return false;
-    if (isInitialMount && !isUndefined(revalidateOnMount)) return revalidateOnMount;
-    if (suspense) return isUndefined(data) ? false : revalidateIfStale;
-    return isUndefined(data) || revalidateIfStale;
-  })();
-  const isValidating = isUndefined(cached.isValidating) ? shouldDoInitialRevalidation : cached.isValidating;
-  const isLoading = isUndefined(cached.isLoading) ? shouldDoInitialRevalidation : cached.isLoading;
-  const revalidate = reactExports.useCallback(
-    async (revalidateOpts) => {
-      const currentFetcher = fetcherRef.current;
-      if (!key || !currentFetcher || unmountedRef.current || getConfig().isPaused()) {
-        return false;
-      }
-      let newData;
-      let startAt;
-      let loading = true;
-      const opts = revalidateOpts || {};
-      const shouldStartNewRequest = !FETCH[key] || !opts.dedupe;
-      const callbackSafeguard = () => {
-        if (IS_REACT_LEGACY) {
-          return !unmountedRef.current && key === keyRef.current && initialMountedRef.current;
-        }
-        return key === keyRef.current;
-      };
-      const finalState = {
-        isValidating: false,
-        isLoading: false
-      };
-      const finishRequestAndUpdateState = () => {
-        setCache(finalState);
-      };
-      const cleanupState = () => {
-        const requestInfo = FETCH[key];
-        if (requestInfo && requestInfo[1] === startAt) {
-          delete FETCH[key];
-        }
-      };
-      const initialState = {
-        isValidating: true
-      };
-      if (isUndefined(getCache().data)) {
-        initialState.isLoading = true;
-      }
-      try {
-        if (shouldStartNewRequest) {
-          setCache(initialState);
-          if (config.loadingTimeout && isUndefined(getCache().data)) {
-            setTimeout(() => {
-              if (loading && callbackSafeguard()) {
-                getConfig().onLoadingSlow(key, config);
-              }
-            }, config.loadingTimeout);
-          }
-          FETCH[key] = [
-            currentFetcher(fnArg),
-            getTimestamp()
-          ];
-        }
-        ;
-        [newData, startAt] = FETCH[key];
-        newData = await newData;
-        if (shouldStartNewRequest) {
-          setTimeout(cleanupState, config.dedupingInterval);
-        }
-        if (!FETCH[key] || FETCH[key][1] !== startAt) {
-          if (shouldStartNewRequest) {
-            if (callbackSafeguard()) {
-              getConfig().onDiscarded(key);
-            }
-          }
-          return false;
-        }
-        finalState.error = UNDEFINED;
-        const mutationInfo = MUTATION[key];
-        if (!isUndefined(mutationInfo) && // case 1
-        (startAt <= mutationInfo[0] || // case 2
-        startAt <= mutationInfo[1] || // case 3
-        mutationInfo[1] === 0)) {
-          finishRequestAndUpdateState();
-          if (shouldStartNewRequest) {
-            if (callbackSafeguard()) {
-              getConfig().onDiscarded(key);
-            }
-          }
-          return false;
-        }
-        const cacheData = getCache().data;
-        finalState.data = compare2(cacheData, newData) ? cacheData : newData;
-        if (shouldStartNewRequest) {
-          if (callbackSafeguard()) {
-            getConfig().onSuccess(newData, key, config);
-          }
-        }
-      } catch (err) {
-        cleanupState();
-        const currentConfig = getConfig();
-        const { shouldRetryOnError } = currentConfig;
-        if (!currentConfig.isPaused()) {
-          finalState.error = err;
-          if (shouldStartNewRequest && callbackSafeguard()) {
-            currentConfig.onError(err, key, currentConfig);
-            if (shouldRetryOnError === true || isFunction(shouldRetryOnError) && shouldRetryOnError(err)) {
-              if (!getConfig().revalidateOnFocus || !getConfig().revalidateOnReconnect || isActive()) {
-                currentConfig.onErrorRetry(err, key, currentConfig, (_opts) => {
-                  const revalidators = EVENT_REVALIDATORS[key];
-                  if (revalidators && revalidators[0]) {
-                    revalidators[0](ERROR_REVALIDATE_EVENT, _opts);
-                  }
-                }, {
-                  retryCount: (opts.retryCount || 0) + 1,
-                  dedupe: true
-                });
-              }
-            }
-          }
-        }
-      }
-      loading = false;
-      finishRequestAndUpdateState();
-      return true;
-    },
-    // `setState` is immutable, and `eventsCallback`, `fnArg`, and
-    // `keyValidating` are depending on `key`, so we can exclude them from
-    // the deps array.
-    //
-    // FIXME:
-    // `fn` and `config` might be changed during the lifecycle,
-    // but they might be changed every render like this.
-    // `useSWR('key', () => fetch('/api/'), { suspense: true })`
-    // So we omit the values from the deps array
-    // even though it might cause unexpected behaviors.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [
-      key,
-      cache2
-    ]
-  );
-  const boundMutate = reactExports.useCallback(
-    // Use callback to make sure `keyRef.current` returns latest result every time
-    (...args) => {
-      return internalMutate(cache2, keyRef.current, ...args);
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  );
-  useIsomorphicLayoutEffect(() => {
-    fetcherRef.current = fetcher;
-    configRef.current = config;
-    if (!isUndefined(cachedData)) {
-      laggyDataRef.current = cachedData;
-    }
-  });
-  useIsomorphicLayoutEffect(() => {
-    if (!key) return;
-    const softRevalidate = revalidate.bind(UNDEFINED, WITH_DEDUPE);
-    let nextFocusRevalidatedAt = 0;
-    if (getConfig().revalidateOnFocus) {
-      const initNow = Date.now();
-      nextFocusRevalidatedAt = initNow + getConfig().focusThrottleInterval;
-    }
-    const onRevalidate = (type, opts = {}) => {
-      if (type == FOCUS_EVENT) {
-        const now = Date.now();
-        if (getConfig().revalidateOnFocus && now > nextFocusRevalidatedAt && isActive()) {
-          nextFocusRevalidatedAt = now + getConfig().focusThrottleInterval;
-          softRevalidate();
-        }
-      } else if (type == RECONNECT_EVENT) {
-        if (getConfig().revalidateOnReconnect && isActive()) {
-          softRevalidate();
-        }
-      } else if (type == MUTATE_EVENT) {
-        return revalidate();
-      } else if (type == ERROR_REVALIDATE_EVENT) {
-        return revalidate(opts);
-      }
-      return;
-    };
-    const unsubEvents = subscribeCallback(key, EVENT_REVALIDATORS, onRevalidate);
-    unmountedRef.current = false;
-    keyRef.current = key;
-    initialMountedRef.current = true;
-    setCache({
-      _k: fnArg
-    });
-    if (shouldDoInitialRevalidation) {
-      if (!FETCH[key]) {
-        if (isUndefined(data) || IS_SERVER) {
-          softRevalidate();
-        } else {
-          rAF(softRevalidate);
-        }
-      }
-    }
-    return () => {
-      unmountedRef.current = true;
-      unsubEvents();
-    };
-  }, [
-    key
-  ]);
-  useIsomorphicLayoutEffect(() => {
-    let timer;
-    function next() {
-      const interval = isFunction(refreshInterval) ? refreshInterval(getCache().data) : refreshInterval;
-      if (interval && timer !== -1) {
-        timer = setTimeout(execute, interval);
-      }
-    }
-    function execute() {
-      if (!getCache().error && (refreshWhenHidden || getConfig().isVisible()) && (refreshWhenOffline || getConfig().isOnline())) {
-        revalidate(WITH_DEDUPE).then(next);
-      } else {
-        next();
-      }
-    }
-    next();
-    return () => {
-      if (timer) {
-        clearTimeout(timer);
-        timer = -1;
-      }
-    };
-  }, [
-    refreshInterval,
-    refreshWhenHidden,
-    refreshWhenOffline,
-    key
-  ]);
-  reactExports.useDebugValue(returnedData);
-  if (suspense) {
-    if (!IS_REACT_LEGACY && IS_SERVER && hasKeyButNoData) {
-      throw new Error("Fallback data is required when using Suspense in SSR.");
-    }
-    if (hasKeyButNoData) {
-      fetcherRef.current = fetcher;
-      configRef.current = config;
-      unmountedRef.current = false;
-    }
-    const req = PRELOAD[key];
-    const mutateReq = !isUndefined(req) && hasKeyButNoData ? boundMutate(req) : resolvedUndef;
-    use(mutateReq);
-    if (!isUndefined(error) && hasKeyButNoData) {
-      throw error;
-    }
-    const revalidation = hasKeyButNoData ? revalidate(WITH_DEDUPE) : resolvedUndef;
-    if (!isUndefined(returnedData) && hasKeyButNoData) {
-      revalidation.status = "fulfilled";
-      revalidation.value = true;
-    }
-    use(revalidation);
-  }
-  const swrResponse = {
-    mutate: boundMutate,
-    get data() {
-      stateDependencies.data = true;
-      return returnedData;
-    },
-    get error() {
-      stateDependencies.error = true;
-      return error;
-    },
-    get isValidating() {
-      stateDependencies.isValidating = true;
-      return isValidating;
-    },
-    get isLoading() {
-      stateDependencies.isLoading = true;
-      return isLoading;
-    }
-  };
-  return swrResponse;
-};
-const useSWR = withArgs(useSWRHandler);
-function throttle$1(function_, wait) {
-  if (typeof function_ !== "function") {
-    throw new TypeError(`Expected the first argument to be a \`function\`, got \`${typeof function_}\`.`);
-  }
-  let timeoutId;
-  let lastCallTime = 0;
-  return function throttled(...arguments_) {
-    clearTimeout(timeoutId);
-    const now = Date.now();
-    const timeSinceLastCall = now - lastCallTime;
-    const delayForNextCall = wait - timeSinceLastCall;
-    if (delayForNextCall <= 0) {
-      lastCallTime = now;
-      function_.apply(this, arguments_);
-    } else {
-      timeoutId = setTimeout(() => {
-        lastCallTime = Date.now();
-        function_.apply(this, arguments_);
-      }, delayForNextCall);
-    }
-  };
-}
-var throttleit = throttle$1;
-const throttleFunction = /* @__PURE__ */ getDefaultExportFromCjs(throttleit);
-function throttle(fn, waitMs) {
-  return waitMs != null ? throttleFunction(fn, waitMs) : fn;
-}
-function useStableValue(latestValue) {
-  const [value, setValue] = reactExports.useState(latestValue);
-  reactExports.useEffect(() => {
-    if (!isDeepEqualData(latestValue, value)) {
-      setValue(latestValue);
-    }
-  }, [latestValue, value]);
-  return value;
-}
-function useChat({
-  api = "/api/chat",
-  id: id2,
-  initialMessages,
-  initialInput = "",
-  sendExtraMessageFields,
-  onToolCall,
-  experimental_prepareRequestBody,
-  maxSteps = 1,
-  streamProtocol = "data",
-  onResponse,
-  onFinish,
-  onError,
-  credentials,
-  headers,
-  body,
-  generateId: generateId2 = generateId,
-  fetch: fetch2,
-  keepLastMessageOnError = true,
-  experimental_throttle: throttleWaitMs
-} = {}) {
-  const [hookId] = reactExports.useState(generateId2);
-  const chatId = id2 != null ? id2 : hookId;
-  const chatKey = typeof api === "string" ? [api, chatId] : chatId;
-  const stableInitialMessages = useStableValue(initialMessages != null ? initialMessages : []);
-  const processedInitialMessages = reactExports.useMemo(
-    () => fillMessageParts(stableInitialMessages),
-    [stableInitialMessages]
-  );
-  const { data: messages, mutate: mutate2 } = useSWR(
-    [chatKey, "messages"],
-    null,
-    { fallbackData: processedInitialMessages }
-  );
-  const messagesRef = reactExports.useRef(messages || []);
-  reactExports.useEffect(() => {
-    messagesRef.current = messages || [];
-  }, [messages]);
-  const { data: streamData, mutate: mutateStreamData } = useSWR([chatKey, "streamData"], null);
-  const streamDataRef = reactExports.useRef(streamData);
-  reactExports.useEffect(() => {
-    streamDataRef.current = streamData;
-  }, [streamData]);
-  const { data: status = "ready", mutate: mutateStatus } = useSWR([chatKey, "status"], null);
-  const { data: error = void 0, mutate: setError } = useSWR([chatKey, "error"], null);
-  const abortControllerRef = reactExports.useRef(null);
-  const extraMetadataRef = reactExports.useRef({
-    credentials,
-    headers,
-    body
-  });
-  reactExports.useEffect(() => {
-    extraMetadataRef.current = {
-      credentials,
-      headers,
-      body
-    };
-  }, [credentials, headers, body]);
-  const triggerRequest = reactExports.useCallback(
-    async (chatRequest, requestType = "generate") => {
-      var _a2, _b;
-      mutateStatus("submitted");
-      setError(void 0);
-      const chatMessages = fillMessageParts(chatRequest.messages);
-      const messageCount = chatMessages.length;
-      const maxStep = extractMaxToolInvocationStep(
-        (_a2 = chatMessages[chatMessages.length - 1]) == null ? void 0 : _a2.toolInvocations
-      );
-      try {
-        const abortController = new AbortController();
-        abortControllerRef.current = abortController;
-        const throttledMutate = throttle(mutate2, throttleWaitMs);
-        const throttledMutateStreamData = throttle(
-          mutateStreamData,
-          throttleWaitMs
-        );
-        const previousMessages = messagesRef.current;
-        throttledMutate(chatMessages, false);
-        const constructedMessagesPayload = sendExtraMessageFields ? chatMessages : chatMessages.map(
-          ({
-            role,
-            content,
-            experimental_attachments,
-            data,
-            annotations,
-            toolInvocations,
-            parts
-          }) => ({
-            role,
-            content,
-            ...experimental_attachments !== void 0 && {
-              experimental_attachments
-            },
-            ...data !== void 0 && { data },
-            ...annotations !== void 0 && { annotations },
-            ...toolInvocations !== void 0 && { toolInvocations },
-            ...parts !== void 0 && { parts }
-          })
-        );
-        const existingData = streamDataRef.current;
-        await callChatApi({
-          api,
-          body: (_b = experimental_prepareRequestBody == null ? void 0 : experimental_prepareRequestBody({
-            id: chatId,
-            messages: chatMessages,
-            requestData: chatRequest.data,
-            requestBody: chatRequest.body
-          })) != null ? _b : {
-            id: chatId,
-            messages: constructedMessagesPayload,
-            data: chatRequest.data,
-            ...extraMetadataRef.current.body,
-            ...chatRequest.body
-          },
-          streamProtocol,
-          credentials: extraMetadataRef.current.credentials,
-          headers: {
-            ...extraMetadataRef.current.headers,
-            ...chatRequest.headers
-          },
-          abortController: () => abortControllerRef.current,
-          restoreMessagesOnFailure() {
-            if (!keepLastMessageOnError) {
-              throttledMutate(previousMessages, false);
-            }
-          },
-          onResponse,
-          onUpdate({ message, data, replaceLastMessage }) {
-            mutateStatus("streaming");
-            throttledMutate(
-              [
-                ...replaceLastMessage ? chatMessages.slice(0, chatMessages.length - 1) : chatMessages,
-                message
-              ],
-              false
-            );
-            if (data == null ? void 0 : data.length) {
-              throttledMutateStreamData(
-                [...existingData != null ? existingData : [], ...data],
-                false
-              );
-            }
-          },
-          onToolCall,
-          onFinish,
-          generateId: generateId2,
-          fetch: fetch2,
-          lastMessage: chatMessages[chatMessages.length - 1],
-          requestType
-        });
-        abortControllerRef.current = null;
-        mutateStatus("ready");
-      } catch (err) {
-        if (err.name === "AbortError") {
-          abortControllerRef.current = null;
-          mutateStatus("ready");
-          return null;
-        }
-        if (onError && err instanceof Error) {
-          onError(err);
-        }
-        setError(err);
-        mutateStatus("error");
-      }
-      const messages2 = messagesRef.current;
-      if (shouldResubmitMessages({
-        originalMaxToolInvocationStep: maxStep,
-        originalMessageCount: messageCount,
-        maxSteps,
-        messages: messages2
-      })) {
-        await triggerRequest({ messages: messages2 });
-      }
-    },
-    [
-      mutate2,
-      mutateStatus,
-      api,
-      extraMetadataRef,
-      onResponse,
-      onFinish,
-      onError,
-      setError,
-      mutateStreamData,
-      streamDataRef,
-      streamProtocol,
-      sendExtraMessageFields,
-      experimental_prepareRequestBody,
-      onToolCall,
-      maxSteps,
-      messagesRef,
-      abortControllerRef,
-      generateId2,
-      fetch2,
-      keepLastMessageOnError,
-      throttleWaitMs,
-      chatId
-    ]
-  );
-  const append = reactExports.useCallback(
-    async (message, {
-      data,
-      headers: headers2,
-      body: body2,
-      experimental_attachments = message.experimental_attachments
-    } = {}) => {
-      var _a2, _b;
-      const attachmentsForRequest = await prepareAttachmentsForRequest(
-        experimental_attachments
-      );
-      const messages2 = messagesRef.current.concat({
-        ...message,
-        id: (_a2 = message.id) != null ? _a2 : generateId2(),
-        createdAt: (_b = message.createdAt) != null ? _b : /* @__PURE__ */ new Date(),
-        experimental_attachments: attachmentsForRequest.length > 0 ? attachmentsForRequest : void 0,
-        parts: getMessageParts(message)
-      });
-      return triggerRequest({ messages: messages2, headers: headers2, body: body2, data });
-    },
-    [triggerRequest, generateId2]
-  );
-  const reload = reactExports.useCallback(
-    async ({ data, headers: headers2, body: body2 } = {}) => {
-      const messages2 = messagesRef.current;
-      if (messages2.length === 0) {
-        return null;
-      }
-      const lastMessage = messages2[messages2.length - 1];
-      return triggerRequest({
-        messages: lastMessage.role === "assistant" ? messages2.slice(0, -1) : messages2,
-        headers: headers2,
-        body: body2,
-        data
-      });
-    },
-    [triggerRequest]
-  );
-  const stop = reactExports.useCallback(() => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      abortControllerRef.current = null;
-    }
-  }, []);
-  const experimental_resume = reactExports.useCallback(async () => {
-    const messages2 = messagesRef.current;
-    triggerRequest({ messages: messages2 }, "resume");
-  }, [triggerRequest]);
-  const setMessages = reactExports.useCallback(
-    (messages2) => {
-      if (typeof messages2 === "function") {
-        messages2 = messages2(messagesRef.current);
-      }
-      const messagesWithParts = fillMessageParts(messages2);
-      mutate2(messagesWithParts, false);
-      messagesRef.current = messagesWithParts;
-    },
-    [mutate2]
-  );
-  const setData = reactExports.useCallback(
-    (data) => {
-      if (typeof data === "function") {
-        data = data(streamDataRef.current);
-      }
-      mutateStreamData(data, false);
-      streamDataRef.current = data;
-    },
-    [mutateStreamData]
-  );
-  const [input, setInput] = reactExports.useState(initialInput);
-  const handleSubmit = reactExports.useCallback(
-    async (event, options = {}, metadata) => {
-      var _a2;
-      (_a2 = event == null ? void 0 : event.preventDefault) == null ? void 0 : _a2.call(event);
-      if (!input && !options.allowEmptySubmit)
-        return;
-      if (metadata) {
-        extraMetadataRef.current = {
-          ...extraMetadataRef.current,
-          ...metadata
-        };
-      }
-      const attachmentsForRequest = await prepareAttachmentsForRequest(
-        options.experimental_attachments
-      );
-      const messages2 = messagesRef.current.concat({
-        id: generateId2(),
-        createdAt: /* @__PURE__ */ new Date(),
-        role: "user",
-        content: input,
-        experimental_attachments: attachmentsForRequest.length > 0 ? attachmentsForRequest : void 0,
-        parts: [{ type: "text", text: input }]
-      });
-      const chatRequest = {
-        messages: messages2,
-        headers: options.headers,
-        body: options.body,
-        data: options.data
-      };
-      triggerRequest(chatRequest);
-      setInput("");
-    },
-    [input, generateId2, triggerRequest]
-  );
-  const handleInputChange = (e) => {
-    setInput(e.target.value);
-  };
-  const addToolResult = reactExports.useCallback(
-    ({ toolCallId, result }) => {
-      const currentMessages = messagesRef.current;
-      updateToolCallResult({
-        messages: currentMessages,
-        toolCallId,
-        toolResult: result
-      });
-      mutate2(
-        [
-          ...currentMessages.slice(0, currentMessages.length - 1),
-          { ...currentMessages[currentMessages.length - 1] }
-        ],
-        false
-      );
-      if (status === "submitted" || status === "streaming") {
-        return;
-      }
-      const lastMessage = currentMessages[currentMessages.length - 1];
-      if (isAssistantMessageWithCompletedToolCalls(lastMessage)) {
-        triggerRequest({ messages: currentMessages });
-      }
-    },
-    [mutate2, status, triggerRequest]
-  );
-  return {
-    messages: messages != null ? messages : [],
-    id: chatId,
-    setMessages,
-    data: streamData,
-    setData,
-    error,
-    append,
-    reload,
-    stop,
-    experimental_resume,
-    input,
-    setInput,
-    handleInputChange,
-    handleSubmit,
-    isLoading: status === "submitted" || status === "streaming",
-    status,
-    addToolResult
-  };
-}
-const API_BASE$1 = "http://localhost:3001/api";
-async function fetchConversations() {
-  const res = await fetch(`${API_BASE$1}/conversations`);
-  if (!res.ok) throw new Error("Failed to fetch conversations");
-  return res.json();
-}
-async function createConversation(title) {
-  const res = await fetch(`${API_BASE$1}/conversations`, {
+const API_BASE = "http://localhost:3001/api";
+async function describeScreenScreenshot(payload) {
+  const res = await fetch(`${API_BASE}/screens/describe`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ title })
+    body: JSON.stringify(payload)
   });
-  if (!res.ok) throw new Error("Failed to create conversation");
-  return res.json();
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error ?? "Failed to describe UI screenshot");
+  }
+  return await res.json();
 }
-async function fetchConversation(id2) {
-  const res = await fetch(`${API_BASE$1}/conversations/${id2}`);
-  if (!res.ok) throw new Error("Failed to fetch conversation");
-  return res.json();
+async function fetchSavedScreens() {
+  const res = await fetch(`${API_BASE}/screens`);
+  if (!res.ok) throw new Error("Failed to fetch saved screens");
+  const body = await res.json();
+  return body.screens ?? [];
 }
-async function deleteConversation(id2) {
-  const res = await fetch(`${API_BASE$1}/conversations/${id2}`, {
+async function createSavedScreen(payload) {
+  const res = await fetch(`${API_BASE}/screens`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error ?? "Failed to save screen");
+  }
+  return await res.json();
+}
+async function updateSavedScreen(id2, payload) {
+  const res = await fetch(`${API_BASE}/screens/${id2}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error ?? "Failed to update screen");
+  }
+  return await res.json();
+}
+async function deleteSavedScreen(id2) {
+  const res = await fetch(`${API_BASE}/screens/${id2}`, {
     method: "DELETE"
   });
-  if (!res.ok) throw new Error("Failed to delete conversation");
+  if (!res.ok) throw new Error("Failed to delete screen");
 }
-async function fetchSettings() {
-  const res = await fetch(`${API_BASE$1}/settings`);
-  if (!res.ok) throw new Error("Failed to fetch settings");
-  return res.json();
+function subtitleForView(viewType) {
+  if (viewType === "screens") return "Browse all screens";
+  if (viewType === "create") return "Create a new screen";
+  return "Inspect screen details";
 }
-async function fetchSettingsModels() {
-  const res = await fetch(`${API_BASE$1}/settings/models`);
-  if (!res.ok) throw new Error("Failed to fetch settings model options");
-  const data = await res.json();
-  return data.models ?? [];
-}
-async function fetchAccount() {
-  const res = await fetch(`${API_BASE$1}/account`);
-  if (!res.ok) throw new Error("Failed to fetch account");
-  return res.json();
-}
-async function updateSettings(data) {
-  const res = await fetch(`${API_BASE$1}/settings`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
-  });
-  if (!res.ok) throw new Error("Failed to update settings");
-  return res.json();
-}
-const API_BASE = "http://localhost:3001/api";
-function Chat({ conversationId }) {
-  const [input, setInput] = reactExports.useState("");
-  const messagesEndRef = reactExports.useRef(null);
-  const { messages, append, status, error, setMessages } = useChat({
-    api: `${API_BASE}/chat`,
-    id: conversationId,
-    body: { conversationId }
-  });
-  reactExports.useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-  reactExports.useEffect(() => {
-    fetchConversation(conversationId).then((data) => {
-      const loaded = data.messages.map(
-        (m2) => ({
-          id: m2.id,
-          role: m2.role,
-          parts: [{ type: "text", text: m2.content }]
-        })
-      );
-      setMessages(loaded);
-    }).catch(() => setMessages([]));
-  }, [conversationId, setMessages]);
-  const onSubmit = (e) => {
-    e.preventDefault();
-    if (!input.trim() || status !== "ready") return;
-    append({ role: "user", content: input }, { body: { conversationId } });
-    setInput("");
-  };
-  return /* @__PURE__ */ jsxs("div", { className: "flex flex-col h-full", children: [
-    /* @__PURE__ */ jsxs("div", { className: "flex-1 overflow-y-auto p-6 space-y-6", children: [
-      messages.length === 0 && /* @__PURE__ */ jsxs("div", { className: "flex flex-col items-center justify-center h-full text-zinc-500", children: [
-        /* @__PURE__ */ jsx("p", { className: "text-lg mb-2", children: "Start a conversation" }),
-        /* @__PURE__ */ jsx("p", { className: "text-sm", children: "Type a message below to begin" })
-      ] }),
-      messages.map((message) => /* @__PURE__ */ jsx(
-        "div",
-        {
-          className: `flex ${message.role === "user" ? "justify-end" : "justify-start"}`,
-          children: /* @__PURE__ */ jsx(
-            "div",
-            {
-              className: `max-w-[80%] rounded-2xl px-4 py-2.5 ${message.role === "user" ? "bg-emerald-600/80 text-white" : "bg-zinc-800 text-zinc-200"}`,
-              children: /* @__PURE__ */ jsx("div", { className: "whitespace-pre-wrap break-words", children: message.parts?.filter((p2) => p2.type === "text").map((p2, i) => /* @__PURE__ */ jsx("span", { children: p2.text }, i)) })
-            }
-          )
-        },
-        message.id
-      )),
-      (status === "submitted" || status === "streaming") && /* @__PURE__ */ jsx("div", { className: "flex justify-start", children: /* @__PURE__ */ jsx("div", { className: "bg-zinc-800 rounded-2xl px-4 py-2.5 text-zinc-400 animate-pulse", children: "●●●" }) }),
-      error && /* @__PURE__ */ jsx("div", { className: "rounded-lg bg-red-500/20 text-red-400 px-4 py-2 text-sm", children: error.message }),
-      /* @__PURE__ */ jsx("div", { ref: messagesEndRef })
-    ] }),
-    /* @__PURE__ */ jsx(
-      "form",
-      {
-        onSubmit,
-        className: "p-4 border-t border-zinc-800 bg-zinc-900/50",
-        children: /* @__PURE__ */ jsxs("div", { className: "flex gap-2 max-w-3xl mx-auto", children: [
-          /* @__PURE__ */ jsx(
-            "input",
-            {
-              value: input,
-              onChange: (e) => setInput(e.target.value),
-              placeholder: "Message...",
-              disabled: status !== "ready",
-              className: "flex-1 rounded-xl bg-zinc-800 border border-zinc-700 px-4 py-3 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 disabled:opacity-50"
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            "button",
-            {
-              type: "submit",
-              disabled: !input.trim() || status !== "ready",
-              className: "px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium transition-colors",
-              children: "Send"
-            }
-          )
-        ] })
-      }
-    )
-  ] });
-}
-const createStoreImpl = (createState) => {
-  let state;
-  const listeners = /* @__PURE__ */ new Set();
-  const setState = (partial, replace) => {
-    const nextState = typeof partial === "function" ? partial(state) : partial;
-    if (!Object.is(nextState, state)) {
-      const previousState = state;
-      state = (replace != null ? replace : typeof nextState !== "object" || nextState === null) ? nextState : Object.assign({}, state, nextState);
-      listeners.forEach((listener) => listener(state, previousState));
-    }
-  };
-  const getState = () => state;
-  const getInitialState = () => initialState;
-  const subscribe = (listener) => {
-    listeners.add(listener);
-    return () => listeners.delete(listener);
-  };
-  const api = { setState, getState, getInitialState, subscribe };
-  const initialState = state = createState(setState, getState, api);
-  return api;
-};
-const createStore = (createState) => createState ? createStoreImpl(createState) : createStoreImpl;
-const identity = (arg) => arg;
-function useStore(api, selector = identity) {
-  const slice = React$1.useSyncExternalStore(
-    api.subscribe,
-    React$1.useCallback(() => selector(api.getState()), [api, selector]),
-    React$1.useCallback(() => selector(api.getInitialState()), [api, selector])
-  );
-  React$1.useDebugValue(slice);
-  return slice;
-}
-const createImpl = (createState) => {
-  const api = createStore(createState);
-  const useBoundStore = (selector) => useStore(api, selector);
-  Object.assign(useBoundStore, api);
-  return useBoundStore;
-};
-const create = (createState) => createState ? createImpl(createState) : createImpl;
-const useConversationsStore = create((set) => ({
-  conversations: [],
-  loading: false,
-  hasLoaded: false,
-  error: null,
-  loadConversations: async () => {
-    set({ loading: true, error: null });
-    try {
-      const { conversations } = await fetchConversations();
-      set({ conversations, loading: false, hasLoaded: true });
-    } catch (err) {
-      set({
-        loading: false,
-        hasLoaded: true,
-        error: err instanceof Error ? err.message : "Failed to load"
-      });
-    }
-  },
-  createConversation: async (title) => {
-    const conv = await createConversation(title);
-    set((s) => ({
-      conversations: [conv, ...s.conversations]
-    }));
-    return conv;
-  },
-  deleteConversation: async (id2) => {
-    await deleteConversation(id2);
-    set((s) => ({
-      conversations: s.conversations.filter((c) => c.id !== id2)
-    }));
-  }
-}));
-function Sidebar({
-  currentConversationId,
-  onSelectConversation,
-  onNewChat,
-  onOpenSettings
+function AppShell({
+  viewType,
+  onShowScreens,
+  onCreateScreen,
+  children
 }) {
-  const { conversations, loading, deleteConversation: deleteConversation2 } = useConversationsStore();
-  const handleNewChat = () => {
-    onNewChat();
-  };
-  return /* @__PURE__ */ jsxs("aside", { className: "w-64 border-r border-zinc-800 flex flex-col bg-zinc-900/50", children: [
-    /* @__PURE__ */ jsx("div", { className: "p-3 border-b border-zinc-800", children: /* @__PURE__ */ jsxs(
-      "button",
-      {
-        onClick: handleNewChat,
-        className: "w-full py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium transition-colors flex items-center justify-center gap-2",
-        children: [
-          /* @__PURE__ */ jsx("span", { className: "text-lg", children: "+" }),
-          "New Chat"
-        ]
-      }
-    ) }),
-    /* @__PURE__ */ jsx("div", { className: "flex-1 overflow-y-auto p-2", children: loading ? /* @__PURE__ */ jsx("div", { className: "text-zinc-500 text-sm py-4 text-center", children: "Loading..." }) : /* @__PURE__ */ jsx("ul", { className: "space-y-1", children: conversations.map((c) => /* @__PURE__ */ jsxs("li", { className: "group flex items-center gap-1", children: [
+  const isScreensSectionActive = viewType === "screens" || viewType === "detail";
+  return /* @__PURE__ */ jsx("main", { className: "h-screen bg-zinc-950 text-zinc-100", children: /* @__PURE__ */ jsxs("div", { className: "grid h-full grid-cols-[240px_1fr] overflow-hidden", children: [
+    /* @__PURE__ */ jsxs("aside", { className: "border-r border-zinc-800 bg-zinc-900/80 p-4", children: [
+      /* @__PURE__ */ jsx("p", { className: "mb-6 text-xs uppercase tracking-[0.24em] text-zinc-400", children: "Ucur Desktop" }),
       /* @__PURE__ */ jsx(
         "button",
         {
-          onClick: () => onSelectConversation(c.id),
-          className: `flex-1 text-left py-2 px-3 rounded-lg truncate text-sm transition-colors ${currentConversationId === c.id ? "bg-zinc-700 text-white" : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"}`,
-          children: c.title
-        }
-      ),
-      /* @__PURE__ */ jsx(
-        "button",
-        {
-          onClick: () => deleteConversation2(c.id),
-          className: "opacity-0 group-hover:opacity-100 p-1.5 rounded text-zinc-500 hover:text-red-400 hover:bg-zinc-800 transition-all",
-          title: "Delete",
-          children: "×"
-        }
-      )
-    ] }, c.id)) }) }),
-    /* @__PURE__ */ jsx("div", { className: "p-2 border-t border-zinc-800", children: /* @__PURE__ */ jsx(
-      "button",
-      {
-        onClick: onOpenSettings,
-        className: "w-full py-2 px-3 rounded-lg text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 text-sm transition-colors",
-        children: "⚙ Settings"
-      }
-    ) })
-  ] });
-}
-const useSettingsStore = create((set) => ({
-  model: "claude-sonnet-4-20250514",
-  theme: "system",
-  loading: false,
-  loadSettings: async () => {
-    set({ loading: true });
-    try {
-      const data = await fetchSettings();
-      set({
-        model: data.model ?? "claude-sonnet-4-20250514",
-        theme: data.theme ?? "system",
-        loading: false
-      });
-    } catch {
-      set({ loading: false });
-    }
-  },
-  updateSettings: async (data) => {
-    await updateSettings(data);
-    if (data.model !== void 0) set({ model: data.model });
-    if (data.theme !== void 0) set({ theme: data.theme });
-  }
-}));
-function Settings({ onClose }) {
-  const { model, theme, loadSettings, updateSettings: updateStore } = useSettingsStore();
-  const [modelInput, setModelInput] = reactExports.useState(model);
-  const [themeInput, setThemeInput] = reactExports.useState(theme);
-  const [saving, setSaving] = reactExports.useState(false);
-  const [saved, setSaved] = reactExports.useState(false);
-  const [modelOptions, setModelOptions] = reactExports.useState([]);
-  const [modelOptionsLoading, setModelOptionsLoading] = reactExports.useState(false);
-  const [modelOptionsError, setModelOptionsError] = reactExports.useState(null);
-  const [account, setAccount] = reactExports.useState(null);
-  const [accountError, setAccountError] = reactExports.useState(null);
-  reactExports.useEffect(() => {
-    loadSettings();
-  }, [loadSettings]);
-  reactExports.useEffect(() => {
-    setModelInput(model);
-    setThemeInput(theme);
-  }, [model, theme]);
-  reactExports.useEffect(() => {
-    fetchAccount().then(setAccount).catch((err) => setAccountError(err instanceof Error ? err.message : "Failed to load"));
-  }, []);
-  reactExports.useEffect(() => {
-    setModelOptionsLoading(true);
-    fetchSettingsModels().then((models) => {
-      setModelOptions(models);
-      setModelOptionsError(null);
-    }).catch(
-      (err) => setModelOptionsError(
-        err instanceof Error ? err.message : "Failed to load model options"
-      )
-    ).finally(() => setModelOptionsLoading(false));
-  }, []);
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      const payload = { model: modelInput, theme: themeInput };
-      await updateSettings(payload);
-      updateStore(payload);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2e3);
-    } catch {
-    } finally {
-      setSaving(false);
-    }
-  };
-  return /* @__PURE__ */ jsxs("div", { className: "flex flex-col h-full", children: [
-    /* @__PURE__ */ jsxs("header", { className: "flex items-center justify-between p-4 border-b border-zinc-800", children: [
-      /* @__PURE__ */ jsx("h1", { className: "text-xl font-semibold", children: "Settings" }),
-      /* @__PURE__ */ jsx(
-        "button",
-        {
-          onClick: onClose,
-          className: "p-2 rounded-lg text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200",
-          children: "← Back"
+          type: "button",
+          onClick: onShowScreens,
+          className: `w-full rounded-lg px-3 py-2 text-left text-sm transition ${isScreensSectionActive ? "bg-emerald-500/20 text-emerald-200" : "text-zinc-300 hover:bg-zinc-800"}`,
+          children: "Screens"
         }
       )
     ] }),
-    /* @__PURE__ */ jsx("div", { className: "flex-1 overflow-y-auto p-6 max-w-xl", children: /* @__PURE__ */ jsxs("div", { className: "space-y-6", children: [
-      /* @__PURE__ */ jsxs("div", { children: [
-        /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-zinc-400 mb-2", children: "Account (Claude Code)" }),
-        account ? /* @__PURE__ */ jsxs("div", { className: "rounded-lg bg-zinc-800/50 border border-zinc-700 px-4 py-3 text-zinc-200 text-sm", children: [
-          account.email && /* @__PURE__ */ jsx("p", { children: account.email }),
-          account.organization && /* @__PURE__ */ jsx("p", { className: "text-zinc-400", children: account.organization }),
-          !account.email && !account.organization && /* @__PURE__ */ jsx("p", { className: "text-zinc-400", children: "Signed in via Claude Code" })
-        ] }) : accountError ? /* @__PURE__ */ jsx("p", { className: "text-sm text-amber-500", children: accountError }) : /* @__PURE__ */ jsx("p", { className: "text-sm text-zinc-500", children: "Loading…" }),
-        /* @__PURE__ */ jsx("p", { className: "mt-1 text-xs text-zinc-500", children: "Auth is managed by Claude Code. Sign in via the Claude Code app." })
-      ] }),
-      /* @__PURE__ */ jsxs("div", { children: [
-        /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-zinc-400 mb-2", children: "Model" }),
+    /* @__PURE__ */ jsxs("div", { className: "grid h-full grid-rows-[64px_1fr] overflow-hidden", children: [
+      /* @__PURE__ */ jsxs("header", { className: "flex items-center justify-between border-b border-zinc-800 bg-zinc-900/60 px-6", children: [
+        /* @__PURE__ */ jsxs("div", { children: [
+          /* @__PURE__ */ jsx("h1", { className: "text-base font-semibold text-zinc-50", children: "Screen Manager" }),
+          /* @__PURE__ */ jsx("p", { className: "text-xs text-zinc-400", children: subtitleForView(viewType) })
+        ] }),
         /* @__PURE__ */ jsx(
-          "select",
+          "button",
           {
-            value: modelInput,
-            onChange: (e) => setModelInput(e.target.value),
-            disabled: modelOptionsLoading || modelOptions.length === 0,
-            className: "w-full rounded-lg bg-zinc-800 border border-zinc-700 px-4 py-2.5 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50",
-            children: modelOptions.length === 0 ? /* @__PURE__ */ jsx("option", { value: modelInput, children: modelOptionsLoading ? "Loading models..." : modelInput }) : /* @__PURE__ */ jsxs(Fragment, { children: [
-              !modelOptions.some((model2) => model2.value === modelInput) && /* @__PURE__ */ jsxs("option", { value: modelInput, children: [
-                modelInput,
-                " (current)"
-              ] }),
-              modelOptions.map((model2) => /* @__PURE__ */ jsx("option", { value: model2.value, children: model2.displayName }, model2.value))
-            ] })
-          }
-        ),
-        modelOptionsError && /* @__PURE__ */ jsx("p", { className: "mt-1 text-xs text-amber-500", children: modelOptionsError })
-      ] }),
-      /* @__PURE__ */ jsxs("div", { children: [
-        /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-zinc-400 mb-2", children: "Theme" }),
-        /* @__PURE__ */ jsxs(
-          "select",
-          {
-            value: themeInput,
-            onChange: (e) => setThemeInput(e.target.value),
-            className: "w-full rounded-lg bg-zinc-800 border border-zinc-700 px-4 py-2.5 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50",
-            children: [
-              /* @__PURE__ */ jsx("option", { value: "system", children: "System" }),
-              /* @__PURE__ */ jsx("option", { value: "light", children: "Light" }),
-              /* @__PURE__ */ jsx("option", { value: "dark", children: "Dark" })
-            ]
+            type: "button",
+            onClick: onCreateScreen,
+            className: "rounded-lg bg-emerald-500 px-3 py-2 text-sm font-medium text-emerald-950 transition hover:bg-emerald-400",
+            children: "Create New Screen"
           }
         )
       ] }),
-      /* @__PURE__ */ jsx(
-        "button",
+      /* @__PURE__ */ jsx("section", { className: "overflow-auto p-6", children })
+    ] })
+  ] }) });
+}
+function CreateScreenPage({
+  name,
+  notes,
+  previewUrl,
+  analysis,
+  imageMimeType,
+  isAnalyzing,
+  error,
+  onNameChange,
+  onNotesChange,
+  onFileSelect,
+  onPasteImage,
+  onCancel,
+  onSave
+}) {
+  return /* @__PURE__ */ jsxs("div", { className: "mx-auto grid max-w-6xl gap-6 xl:grid-cols-[1fr_1fr]", children: [
+    /* @__PURE__ */ jsxs("div", { className: "space-y-4 rounded-xl border border-zinc-800 bg-zinc-900/70 p-4", children: [
+      /* @__PURE__ */ jsx("h2", { className: "text-lg font-semibold text-zinc-50", children: "Create New Screen" }),
+      /* @__PURE__ */ jsxs("label", { className: "block", children: [
+        /* @__PURE__ */ jsx("span", { className: "mb-1 block text-sm text-zinc-300", children: "Screen Name" }),
+        /* @__PURE__ */ jsx(
+          "input",
+          {
+            value: name,
+            onChange: (event) => onNameChange(event.target.value),
+            placeholder: "Checkout Summary",
+            className: "w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-emerald-500 focus:outline-none"
+          }
+        )
+      ] }),
+      /* @__PURE__ */ jsxs("label", { className: "block", children: [
+        /* @__PURE__ */ jsx("span", { className: "mb-1 block text-sm text-zinc-300", children: "Notes" }),
+        /* @__PURE__ */ jsx(
+          "textarea",
+          {
+            value: notes,
+            onChange: (event) => onNotesChange(event.target.value),
+            rows: 6,
+            placeholder: "Describe what this screen is for...",
+            className: "w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-emerald-500 focus:outline-none"
+          }
+        )
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "flex flex-wrap items-center gap-2", children: [
+        /* @__PURE__ */ jsxs("label", { className: "inline-flex cursor-pointer items-center rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-200 hover:bg-zinc-800", children: [
+          "Upload Screenshot",
+          /* @__PURE__ */ jsx("input", { type: "file", accept: "image/*", onChange: onFileSelect, className: "hidden" })
+        ] }),
+        /* @__PURE__ */ jsx(
+          "button",
+          {
+            type: "button",
+            onClick: onCancel,
+            className: "rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-800",
+            children: "Cancel"
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          "button",
+          {
+            type: "button",
+            onClick: onSave,
+            className: "rounded-lg bg-emerald-500 px-3 py-2 text-sm font-medium text-emerald-950 hover:bg-emerald-400",
+            children: "Save Screen"
+          }
+        )
+      ] }),
+      error && /* @__PURE__ */ jsx("p", { className: "text-sm text-red-300", children: error })
+    ] }),
+    /* @__PURE__ */ jsxs("div", { className: "space-y-4 rounded-xl border border-zinc-800 bg-zinc-900/70 p-4", children: [
+      /* @__PURE__ */ jsx("p", { className: "text-sm font-medium text-zinc-200", children: "Screenshot Analysis" }),
+      /* @__PURE__ */ jsxs(
+        "div",
         {
-          onClick: handleSave,
-          disabled: saving,
-          className: "px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-medium",
-          children: saving ? "Saving..." : saved ? "Saved!" : "Save"
+          onPaste: onPasteImage,
+          className: "rounded-lg border border-dashed border-zinc-700 bg-zinc-950/80 p-4",
+          children: [
+            /* @__PURE__ */ jsx("p", { className: "mb-3 text-xs text-zinc-400", children: "Paste an image here (Cmd/Ctrl + V) or upload one." }),
+            /* @__PURE__ */ jsx("div", { className: "h-56 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-950", children: previewUrl ? /* @__PURE__ */ jsx("img", { src: previewUrl, alt: "Pasted preview", className: "h-full w-full object-contain" }) : /* @__PURE__ */ jsx("div", { className: "flex h-full items-center justify-center text-sm text-zinc-500", children: "No image selected" }) }),
+            imageMimeType && /* @__PURE__ */ jsx("p", { className: "mt-2 text-xs text-zinc-500", children: imageMimeType })
+          ]
         }
-      )
-    ] }) })
+      ),
+      /* @__PURE__ */ jsx("div", { className: "rounded-lg border border-zinc-800 bg-zinc-950 p-3", children: isAnalyzing ? /* @__PURE__ */ jsx("p", { className: "text-sm text-zinc-300", children: "Analyzing screenshot..." }) : analysis ? /* @__PURE__ */ jsx("pre", { className: "max-h-64 overflow-auto whitespace-pre-wrap font-mono text-xs text-zinc-300", children: analysis.description }) : /* @__PURE__ */ jsx("p", { className: "text-sm text-zinc-500", children: "Analysis output will appear here after upload or paste." }) })
+    ] })
   ] });
 }
-function App() {
-  const [currentConversationId, setCurrentConversationId] = reactExports.useState(null);
-  const [showSettings, setShowSettings] = reactExports.useState(false);
-  const [initError, setInitError] = reactExports.useState(null);
-  const [attemptedAutoCreate, setAttemptedAutoCreate] = reactExports.useState(false);
-  const {
-    conversations,
-    loading,
-    hasLoaded,
-    error,
-    loadConversations,
-    createConversation: createConversation2
-  } = useConversationsStore();
-  const loadSettings = useSettingsStore((s) => s.loadSettings);
-  reactExports.useEffect(() => {
-    void loadConversations();
-  }, [loadConversations]);
-  reactExports.useEffect(() => {
-    void loadSettings();
-  }, [loadSettings]);
-  reactExports.useEffect(() => {
-    if (conversations.length > 0 && !currentConversationId) {
-      setInitError(null);
-      setCurrentConversationId(conversations[0].id);
-    }
-  }, [conversations, currentConversationId]);
-  reactExports.useEffect(() => {
-    if (!conversations.length && !currentConversationId && hasLoaded && !loading && !attemptedAutoCreate) {
-      setAttemptedAutoCreate(true);
-      createConversation2().then((conv) => {
-        setInitError(null);
-        setCurrentConversationId(conv.id);
-      }).catch((err) => {
-        setInitError(
-          err instanceof Error ? err.message : "Failed to create conversation"
-        );
-      });
-    }
-  }, [
-    conversations.length,
-    currentConversationId,
-    hasLoaded,
-    loading,
-    attemptedAutoCreate,
-    createConversation2
-  ]);
-  const handleRetry = () => {
-    setInitError(null);
-    setAttemptedAutoCreate(false);
-    void loadConversations();
-  };
-  const handleNewChat = async () => {
-    try {
-      const conv = await createConversation2();
-      setInitError(null);
-      setCurrentConversationId(conv.id);
-    } catch (err) {
-      setInitError(
-        err instanceof Error ? err.message : "Failed to create conversation"
-      );
-    }
-  };
-  return /* @__PURE__ */ jsxs("div", { className: "flex h-screen bg-zinc-950 text-zinc-100", children: [
-    /* @__PURE__ */ jsx(
-      Sidebar,
-      {
-        currentConversationId,
-        onSelectConversation: setCurrentConversationId,
-        onNewChat: handleNewChat,
-        onOpenSettings: () => setShowSettings(true)
-      }
-    ),
-    /* @__PURE__ */ jsx("main", { className: "flex-1 flex flex-col min-w-0", children: showSettings ? /* @__PURE__ */ jsx(Settings, { onClose: () => setShowSettings(false) }) : currentConversationId ? /* @__PURE__ */ jsx(Chat, { conversationId: currentConversationId }) : loading ? /* @__PURE__ */ jsx("div", { className: "flex-1 flex items-center justify-center text-zinc-500", children: "Loading..." }) : error || initError ? /* @__PURE__ */ jsx("div", { className: "flex-1 flex items-center justify-center p-6", children: /* @__PURE__ */ jsxs("div", { className: "max-w-md rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200 space-y-3", children: [
-      /* @__PURE__ */ jsx("p", { className: "font-medium text-red-300", children: "Unable to initialize chat" }),
-      /* @__PURE__ */ jsx("p", { children: initError ?? error }),
+function formatDate(value) {
+  return new Date(value).toLocaleString();
+}
+function ScreenDetailPage({
+  screen,
+  onBackToScreens,
+  onDeleteScreen
+}) {
+  if (!screen) {
+    return /* @__PURE__ */ jsx("div", { className: "rounded-lg border border-zinc-800 bg-zinc-900/60 p-6 text-zinc-300", children: "This screen no longer exists." });
+  }
+  return /* @__PURE__ */ jsxs("div", { className: "space-y-6", children: [
+    /* @__PURE__ */ jsxs("div", { className: "flex items-start justify-between gap-4", children: [
+      /* @__PURE__ */ jsxs("div", { children: [
+        /* @__PURE__ */ jsx("h2", { className: "text-2xl font-semibold text-zinc-50", children: screen.name }),
+        /* @__PURE__ */ jsxs("p", { className: "mt-1 text-sm text-zinc-400", children: [
+          "Created ",
+          formatDate(screen.createdAt)
+        ] })
+      ] }),
       /* @__PURE__ */ jsxs("div", { className: "flex gap-2", children: [
         /* @__PURE__ */ jsx(
           "button",
           {
-            onClick: handleRetry,
-            className: "rounded-md bg-zinc-800 hover:bg-zinc-700 px-3 py-1.5 text-zinc-100 transition-colors",
-            children: "Retry"
+            type: "button",
+            onClick: onBackToScreens,
+            className: "rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-200 hover:bg-zinc-800",
+            children: "Back to Screens"
           }
         ),
         /* @__PURE__ */ jsx(
           "button",
           {
-            onClick: () => setShowSettings(true),
-            className: "rounded-md border border-zinc-700 hover:border-zinc-600 px-3 py-1.5 text-zinc-200 transition-colors",
-            children: "Open Settings"
+            type: "button",
+            onClick: () => onDeleteScreen(screen.id),
+            className: "rounded-lg border border-red-500/50 px-3 py-2 text-sm text-red-300 hover:bg-red-500/10",
+            children: "Delete Screen"
           }
         )
       ] })
-    ] }) }) : /* @__PURE__ */ jsx("div", { className: "flex-1 flex items-center justify-center text-zinc-500", children: "Loading..." }) })
+    ] }),
+    /* @__PURE__ */ jsxs("div", { className: "grid gap-6 xl:grid-cols-[420px_1fr]", children: [
+      /* @__PURE__ */ jsxs("div", { className: "rounded-xl border border-zinc-800 bg-zinc-900/70 p-4", children: [
+        /* @__PURE__ */ jsx("p", { className: "mb-3 text-sm font-medium text-zinc-200", children: "Preview" }),
+        /* @__PURE__ */ jsx("div", { className: "h-64 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-950", children: screen.previewUrl ? /* @__PURE__ */ jsx("img", { src: screen.previewUrl, alt: `${screen.name} preview`, className: "h-full w-full object-contain" }) : /* @__PURE__ */ jsx("div", { className: "flex h-full items-center justify-center text-sm text-zinc-500", children: "No screenshot available" }) })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "space-y-4 rounded-xl border border-zinc-800 bg-zinc-900/70 p-4", children: [
+        /* @__PURE__ */ jsxs("div", { children: [
+          /* @__PURE__ */ jsx("p", { className: "text-sm font-medium text-zinc-200", children: "Notes" }),
+          /* @__PURE__ */ jsx("p", { className: "mt-2 text-sm text-zinc-300", children: screen.notes || "No notes for this screen." })
+        ] }),
+        /* @__PURE__ */ jsxs("div", { children: [
+          /* @__PURE__ */ jsx("p", { className: "text-sm font-medium text-zinc-200", children: "Generated Description" }),
+          screen.analysisStatus === "processing" ? /* @__PURE__ */ jsx("p", { className: "mt-2 text-sm text-amber-300", children: "Analyzing screenshot..." }) : screen.analysis ? /* @__PURE__ */ jsx("pre", { className: "mt-2 max-h-72 overflow-auto whitespace-pre-wrap rounded-lg border border-zinc-800 bg-zinc-950 p-3 font-mono text-xs text-zinc-300", children: screen.analysis }) : screen.analysisStatus === "failed" ? /* @__PURE__ */ jsx("p", { className: "mt-2 text-sm text-red-300", children: screen.analysisError || "Failed to generate description." }) : /* @__PURE__ */ jsx("p", { className: "mt-2 text-sm text-zinc-500", children: "No generated description." })
+        ] })
+      ] })
+    ] })
   ] });
 }
+function ScreensGridPage({
+  screens,
+  onOpenScreen,
+  onDeleteScreen
+}) {
+  if (screens.length === 0) {
+    return /* @__PURE__ */ jsxs("div", { className: "rounded-xl border border-dashed border-zinc-700 bg-zinc-900/50 p-10 text-center", children: [
+      /* @__PURE__ */ jsx("p", { className: "text-zinc-300", children: "No screens yet." }),
+      /* @__PURE__ */ jsx("p", { className: "mt-2 text-sm text-zinc-500", children: "Create your first screen to see it in this grid." })
+    ] });
+  }
+  return /* @__PURE__ */ jsx("div", { className: "grid gap-4 sm:grid-cols-2 xl:grid-cols-3", children: screens.map((screen) => /* @__PURE__ */ jsxs(
+    "article",
+    {
+      className: "group rounded-xl border border-zinc-800 bg-zinc-900/70 p-4 transition hover:border-emerald-500/40",
+      children: [
+        /* @__PURE__ */ jsxs(
+          "button",
+          {
+            type: "button",
+            onClick: () => onOpenScreen(screen.id),
+            className: "w-full text-left",
+            children: [
+              /* @__PURE__ */ jsx("div", { className: "mb-3 h-36 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-950", children: screen.previewUrl ? /* @__PURE__ */ jsx(
+                "img",
+                {
+                  src: screen.previewUrl,
+                  alt: `${screen.name} preview`,
+                  className: "h-full w-full object-cover"
+                }
+              ) : /* @__PURE__ */ jsx("div", { className: "flex h-full items-center justify-center text-xs text-zinc-500", children: "No preview image" }) }),
+              /* @__PURE__ */ jsx("h3", { className: "text-sm font-semibold text-zinc-100", children: screen.name }),
+              /* @__PURE__ */ jsx("p", { className: "mt-1 line-clamp-2 text-xs text-zinc-400", children: screen.notes || "No notes provided." }),
+              screen.analysisStatus === "processing" && /* @__PURE__ */ jsx("p", { className: "mt-2 text-xs text-amber-300", children: "Analyzing screenshot..." }),
+              screen.analysisStatus === "failed" && /* @__PURE__ */ jsx("p", { className: "mt-2 text-xs text-red-300", children: screen.analysisError || "Analysis failed" }),
+              /* @__PURE__ */ jsx("p", { className: "mt-3 text-xs text-zinc-500", children: formatDate(screen.createdAt) })
+            ]
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          "button",
+          {
+            type: "button",
+            onClick: () => onDeleteScreen(screen.id),
+            className: "mt-3 rounded-md px-2 py-1 text-xs text-red-300 hover:bg-red-500/10",
+            children: "Delete"
+          }
+        )
+      ]
+    },
+    screen.id
+  )) });
+}
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result !== "string") {
+        reject(new Error("Failed to read image from clipboard"));
+        return;
+      }
+      resolve(reader.result);
+    };
+    reader.onerror = () => reject(new Error("Failed to read image from clipboard"));
+    reader.readAsDataURL(file);
+  });
+}
+function extractBase64(dataUrl) {
+  const splitAt = dataUrl.indexOf(",");
+  return splitAt >= 0 ? dataUrl.slice(splitAt + 1) : dataUrl;
+}
+async function normalizeForVisionModel(sourceDataUrl) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const maxDimension = 2048;
+      const scale = Math.min(1, maxDimension / Math.max(img.width, img.height));
+      const width = Math.max(1, Math.round(img.width * scale));
+      const height = Math.max(1, Math.round(img.height * scale));
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        reject(new Error("Failed to prepare pasted image"));
+        return;
+      }
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, width, height);
+      ctx.drawImage(img, 0, 0, width, height);
+      const normalizedDataUrl = canvas.toDataURL("image/jpeg", 0.92);
+      resolve({
+        imageBase64: extractBase64(normalizedDataUrl),
+        imageMimeType: "image/jpeg"
+      });
+    };
+    img.onerror = () => reject(new Error("Failed to decode pasted image"));
+    img.src = sourceDataUrl;
+  });
+}
+function App() {
+  const [screens, setScreens] = reactExports.useState([]);
+  const [view, setView] = reactExports.useState({ type: "screens" });
+  const [name, setName] = reactExports.useState("");
+  const [notes, setNotes] = reactExports.useState("");
+  const [previewUrl, setPreviewUrl] = reactExports.useState(null);
+  const [analysis, setAnalysis] = reactExports.useState(null);
+  const [imageMimeType, setImageMimeType] = reactExports.useState(null);
+  const [isAnalyzing, setIsAnalyzing] = reactExports.useState(false);
+  const [error, setError] = reactExports.useState(null);
+  const activeAnalyzeRequestIdRef = reactExports.useRef(null);
+  const analyzeRequestCounterRef = reactExports.useRef(0);
+  const pendingAnalyzeTargetByRequestRef = reactExports.useRef(/* @__PURE__ */ new Map());
+  const toScreenItem = (screen) => ({
+    id: screen.id,
+    name: screen.name,
+    notes: screen.notes,
+    createdAt: screen.createdAt,
+    previewUrl: screen.previewUrl,
+    analysis: screen.analysis,
+    analysisStatus: screen.analysisStatus,
+    analysisError: screen.analysisError
+  });
+  reactExports.useEffect(() => {
+    let disposed = false;
+    void (async () => {
+      try {
+        const data = await fetchSavedScreens();
+        if (disposed) return;
+        setScreens(data.map(toScreenItem));
+      } catch (err) {
+        if (disposed) return;
+        const message = err instanceof Error ? err.message : "Failed to fetch saved screens";
+        setError(message);
+      }
+    })();
+    return () => {
+      disposed = true;
+    };
+  }, []);
+  const activeScreen = reactExports.useMemo(() => {
+    if (view.type !== "detail") return null;
+    return screens.find((screen) => screen.id === view.screenId) ?? null;
+  }, [screens, view]);
+  const resetCreateState = () => {
+    setName("");
+    setNotes("");
+    setPreviewUrl(null);
+    setAnalysis(null);
+    setImageMimeType(null);
+    setError(null);
+    setIsAnalyzing(false);
+  };
+  const beginCreate = () => {
+    resetCreateState();
+    setView({ type: "create" });
+  };
+  const analyzeFile = async (file) => {
+    if (isAnalyzing) return;
+    const requestId = analyzeRequestCounterRef.current + 1;
+    analyzeRequestCounterRef.current = requestId;
+    activeAnalyzeRequestIdRef.current = requestId;
+    setError(null);
+    setAnalysis(null);
+    setImageMimeType(file.type);
+    setIsAnalyzing(true);
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      setPreviewUrl(dataUrl);
+      let payload;
+      try {
+        payload = await normalizeForVisionModel(dataUrl);
+      } catch {
+        payload = {
+          imageMimeType: file.type,
+          imageBase64: extractBase64(dataUrl)
+        };
+      }
+      const response = await describeScreenScreenshot(payload);
+      setAnalysis(response);
+      const targetScreenId = pendingAnalyzeTargetByRequestRef.current.get(requestId);
+      if (targetScreenId) {
+        await updateSavedScreen(targetScreenId, {
+          analysis: response.description,
+          analysisStatus: "completed",
+          analysisError: null
+        });
+        setScreens(
+          (current) => current.map(
+            (screen) => screen.id === targetScreenId ? {
+              ...screen,
+              analysis: response.description,
+              analysisStatus: "completed",
+              analysisError: void 0
+            } : screen
+          )
+        );
+        pendingAnalyzeTargetByRequestRef.current.delete(requestId);
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to analyze screenshot";
+      setError(message);
+      const targetScreenId = pendingAnalyzeTargetByRequestRef.current.get(requestId);
+      if (targetScreenId) {
+        await updateSavedScreen(targetScreenId, {
+          analysisStatus: "failed",
+          analysisError: message
+        }).catch(() => {
+        });
+        setScreens(
+          (current) => current.map(
+            (screen) => screen.id === targetScreenId ? {
+              ...screen,
+              analysisStatus: "failed",
+              analysisError: message
+            } : screen
+          )
+        );
+        pendingAnalyzeTargetByRequestRef.current.delete(requestId);
+      }
+    } finally {
+      setIsAnalyzing(false);
+      if (activeAnalyzeRequestIdRef.current === requestId) {
+        activeAnalyzeRequestIdRef.current = null;
+      }
+    }
+  };
+  const handlePasteImage = async (event) => {
+    const items = event.clipboardData?.items;
+    if (!items?.length) return;
+    const imageItem = Array.from(items).find((item) => item.type.startsWith("image/"));
+    if (!imageItem) return;
+    const file = imageItem.getAsFile();
+    if (!file) return;
+    event.preventDefault();
+    await analyzeFile(file);
+  };
+  const handleFileSelect = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    await analyzeFile(file);
+    event.target.value = "";
+  };
+  const createScreen = async () => {
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      setError("Screen name is required.");
+      return;
+    }
+    try {
+      const saved = await createSavedScreen({
+        name: trimmedName,
+        notes: notes.trim(),
+        previewUrl: previewUrl ?? void 0,
+        analysis: analysis?.description,
+        analysisStatus: isAnalyzing ? "processing" : analysis ? "completed" : error ? "failed" : "idle",
+        analysisError: error ?? void 0
+      });
+      const newScreen = toScreenItem(saved);
+      setScreens((current) => [newScreen, ...current]);
+      if (isAnalyzing && activeAnalyzeRequestIdRef.current !== null) {
+        pendingAnalyzeTargetByRequestRef.current.set(activeAnalyzeRequestIdRef.current, newScreen.id);
+      }
+      setView({ type: "detail", screenId: newScreen.id });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to save screen";
+      setError(message);
+    }
+  };
+  const deleteScreen = async (screenId) => {
+    try {
+      await deleteSavedScreen(screenId);
+      setScreens((current) => current.filter((screen) => screen.id !== screenId));
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to delete screen";
+      setError(message);
+      return;
+    }
+    if (view.type === "detail" && view.screenId === screenId) {
+      setView({ type: "screens" });
+    }
+  };
+  return /* @__PURE__ */ jsxs(
+    AppShell,
+    {
+      viewType: view.type,
+      onShowScreens: () => setView({ type: "screens" }),
+      onCreateScreen: beginCreate,
+      children: [
+        view.type === "screens" && /* @__PURE__ */ jsx(
+          ScreensGridPage,
+          {
+            screens,
+            onOpenScreen: (screenId) => setView({ type: "detail", screenId }),
+            onDeleteScreen: deleteScreen
+          }
+        ),
+        view.type === "detail" && /* @__PURE__ */ jsx(
+          ScreenDetailPage,
+          {
+            screen: activeScreen,
+            onBackToScreens: () => setView({ type: "screens" }),
+            onDeleteScreen: deleteScreen
+          }
+        ),
+        view.type === "create" && /* @__PURE__ */ jsx(
+          CreateScreenPage,
+          {
+            name,
+            notes,
+            previewUrl,
+            analysis,
+            imageMimeType,
+            isAnalyzing,
+            error,
+            onNameChange: setName,
+            onNotesChange: setNotes,
+            onFileSelect: handleFileSelect,
+            onPasteImage: handlePasteImage,
+            onCancel: () => setView({ type: "screens" }),
+            onSave: createScreen
+          }
+        )
+      ]
+    }
+  );
+}
 client.createRoot(document.getElementById("root")).render(
-  /* @__PURE__ */ jsx(React$1.StrictMode, { children: /* @__PURE__ */ jsx(App, {}) })
+  /* @__PURE__ */ jsx(React.StrictMode, { children: /* @__PURE__ */ jsx(App, {}) })
 );

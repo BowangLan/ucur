@@ -19,9 +19,10 @@ async function getSupportedModelOptions(): Promise<ModelOption[]> {
     options: {},
   });
   const models = await q.supportedModels();
+  console.log(models);
   return models.map((model) => ({
     value: model.value,
-    displayName: model.displayName,
+    displayName: model.description,
     description: model.description,
   }));
 }

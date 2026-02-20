@@ -15,6 +15,20 @@
       "when": 1771444545651,
       "tag": "0001_boring_hedge_knight",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1771523188218,
+      "tag": "0002_neat_bloodstrike",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1771526857778,
+      "tag": "0003_uneven_grim_reaper",
+      "breakpoints": true
     }
   ]
 }

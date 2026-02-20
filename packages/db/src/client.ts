@@ -10,6 +10,57 @@ import * as schema from "./schema.js";
 const dbPath = process.env.DATABASE_URL ?? "./data/ucur.db";
 let dbInstance: ReturnType<typeof drizzle<typeof schema>> | null = null;
 
+function hasTable(sqlite: Database.Database, tableName: string) {
+  const row = sqlite
+    .prepare(
+      "select 1 from sqlite_master where type = 'table' and name = ? limit 1",
+    )
+    .get(tableName);
+  return Boolean(row);
+}
+
+function ensureLegacyTables(sqlite: Database.Database) {
+  if (!hasTable(sqlite, "settings")) {
+    sqlite.exec(`
+      CREATE TABLE IF NOT EXISTS settings (
+        id text PRIMARY KEY NOT NULL DEFAULT 'default',
+        model text DEFAULT 'claude-sonnet-4-20250514',
+        theme text DEFAULT 'system',
+        updated_at integer NOT NULL
+      );
+    `);
+  }
+
+  if (!hasTable(sqlite, "screens")) {
+    sqlite.exec(`
+      CREATE TABLE IF NOT EXISTS screens (
+        id text PRIMARY KEY NOT NULL,
+        image_mime_type text NOT NULL,
+        image_sha256 text NOT NULL,
+        description text NOT NULL,
+        model text NOT NULL,
+        created_at integer NOT NULL
+      );
+    `);
+  }
+
+  if (!hasTable(sqlite, "saved_screens")) {
+    sqlite.exec(`
+      CREATE TABLE IF NOT EXISTS saved_screens (
+        id text PRIMARY KEY NOT NULL,
+        name text NOT NULL,
+        notes text NOT NULL DEFAULT '',
+        preview_url text,
+        analysis text,
+        analysis_status text NOT NULL DEFAULT 'idle',
+        analysis_error text,
+        created_at integer NOT NULL,
+        updated_at integer NOT NULL
+      );
+    `);
+  }
+}
+
 function getMigrationsFolder() {
   // Works when running from src (tsx) and dist (node/compiled JS).
   const fromSrc = resolve(import.meta.dirname, "../drizzle");
@@ -34,6 +85,7 @@ export function createDb() {
   const db = drizzle(sqlite, { schema });
 
   migrate(db, { migrationsFolder: getMigrationsFolder() });
+  ensureLegacyTables(sqlite);
 
   dbInstance = db;
   return dbInstance;

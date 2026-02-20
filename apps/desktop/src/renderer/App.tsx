@@ -1,133 +1,284 @@
-import { useEffect, useState } from "react";
-import { Chat } from "./components/Chat";
-import { Sidebar } from "./components/Sidebar";
-import { Settings } from "./components/Settings";
-import { useConversationsStore } from "./stores/useConversationsStore";
-import { useSettingsStore } from "./stores/useSettingsStore";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type ClipboardEvent,
+} from "react";
+import {
+  createSavedScreen,
+  deleteSavedScreen,
+  describeScreenScreenshot,
+  fetchSavedScreens,
+  updateSavedScreen,
+  type SavedScreenResponse,
+  type ScreenDescriptionResponse,
+} from "./lib/api";
+import { AppShell } from "./components/layout/AppShell";
+import { CreateScreenPage } from "./pages/screens/CreateScreenPage";
+import { ScreenDetailPage } from "./pages/screens/ScreenDetailPage";
+import { ScreensGridPage } from "./pages/screens/ScreensGridPage";
+import type { AppView, ScreenItem } from "./types/screens";
+import { extractBase64, fileToDataUrl, normalizeForVisionModel } from "./utils/image";
 
 export default function App() {
-  const [currentConversationId, setCurrentConversationId] = useState<
-    string | null
-  >(null);
-  const [showSettings, setShowSettings] = useState(false);
-  const [initError, setInitError] = useState<string | null>(null);
-  const [attemptedAutoCreate, setAttemptedAutoCreate] = useState(false);
-  const {
-    conversations,
-    loading,
-    hasLoaded,
-    error,
-    loadConversations,
-    createConversation,
-  } = useConversationsStore();
-  const loadSettings = useSettingsStore((s) => s.loadSettings);
+  const [screens, setScreens] = useState<ScreenItem[]>([]);
+  const [view, setView] = useState<AppView>({ type: "screens" });
+
+  const [name, setName] = useState("");
+  const [notes, setNotes] = useState("");
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [analysis, setAnalysis] = useState<ScreenDescriptionResponse | null>(null);
+  const [imageMimeType, setImageMimeType] = useState<string | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const activeAnalyzeRequestIdRef = useRef<number | null>(null);
+  const analyzeRequestCounterRef = useRef(0);
+  const pendingAnalyzeTargetByRequestRef = useRef<Map<number, string>>(new Map());
+
+  const toScreenItem = (screen: SavedScreenResponse): ScreenItem => ({
+    id: screen.id,
+    name: screen.name,
+    notes: screen.notes,
+    createdAt: screen.createdAt,
+    previewUrl: screen.previewUrl,
+    analysis: screen.analysis,
+    analysisStatus: screen.analysisStatus,
+    analysisError: screen.analysisError,
+  });
 
   useEffect(() => {
-    void loadConversations();
-  }, [loadConversations]);
+    let disposed = false;
 
-  useEffect(() => {
-    void loadSettings();
-  }, [loadSettings]);
+    void (async () => {
+      try {
+        const data = await fetchSavedScreens();
+        if (disposed) return;
+        setScreens(data.map(toScreenItem));
+      } catch (err) {
+        if (disposed) return;
+        const message = err instanceof Error ? err.message : "Failed to fetch saved screens";
+        setError(message);
+      }
+    })();
 
-  useEffect(() => {
-    if (conversations.length > 0 && !currentConversationId) {
-      setInitError(null);
-      setCurrentConversationId(conversations[0].id);
-    }
-  }, [conversations, currentConversationId]);
+    return () => {
+      disposed = true;
+    };
+  }, []);
 
-  useEffect(() => {
-    if (
-      !conversations.length &&
-      !currentConversationId &&
-      hasLoaded &&
-      !loading &&
-      !attemptedAutoCreate
-    ) {
-      setAttemptedAutoCreate(true);
-      createConversation()
-        .then((conv) => {
-          setInitError(null);
-          setCurrentConversationId(conv.id);
-        })
-        .catch((err) => {
-          setInitError(
-            err instanceof Error ? err.message : "Failed to create conversation"
-          );
-        });
-    }
-  }, [
-    conversations.length,
-    currentConversationId,
-    hasLoaded,
-    loading,
-    attemptedAutoCreate,
-    createConversation,
-  ]);
+  const activeScreen = useMemo(() => {
+    if (view.type !== "detail") return null;
+    return screens.find((screen) => screen.id === view.screenId) ?? null;
+  }, [screens, view]);
 
-  const handleRetry = () => {
-    setInitError(null);
-    setAttemptedAutoCreate(false);
-    void loadConversations();
+  const resetCreateState = () => {
+    setName("");
+    setNotes("");
+    setPreviewUrl(null);
+    setAnalysis(null);
+    setImageMimeType(null);
+    setError(null);
+    setIsAnalyzing(false);
   };
 
-  const handleNewChat = async () => {
+  const beginCreate = () => {
+    resetCreateState();
+    setView({ type: "create" });
+  };
+
+  const analyzeFile = async (file: File) => {
+    if (isAnalyzing) return;
+
+    const requestId = analyzeRequestCounterRef.current + 1;
+    analyzeRequestCounterRef.current = requestId;
+    activeAnalyzeRequestIdRef.current = requestId;
+
+    setError(null);
+    setAnalysis(null);
+    setImageMimeType(file.type);
+    setIsAnalyzing(true);
+
     try {
-      const conv = await createConversation();
-      setInitError(null);
-      setCurrentConversationId(conv.id);
+      const dataUrl = await fileToDataUrl(file);
+      setPreviewUrl(dataUrl);
+
+      let payload: { imageMimeType: string; imageBase64: string };
+      try {
+        payload = await normalizeForVisionModel(dataUrl);
+      } catch {
+        payload = {
+          imageMimeType: file.type,
+          imageBase64: extractBase64(dataUrl),
+        };
+      }
+
+      const response = await describeScreenScreenshot(payload);
+      setAnalysis(response);
+      const targetScreenId = pendingAnalyzeTargetByRequestRef.current.get(requestId);
+      if (targetScreenId) {
+        await updateSavedScreen(targetScreenId, {
+          analysis: response.description,
+          analysisStatus: "completed",
+          analysisError: null,
+        });
+        setScreens((current) =>
+          current.map((screen) =>
+            screen.id === targetScreenId
+              ? {
+                  ...screen,
+                  analysis: response.description,
+                  analysisStatus: "completed",
+                  analysisError: undefined,
+                }
+              : screen,
+          ),
+        );
+        pendingAnalyzeTargetByRequestRef.current.delete(requestId);
+      }
     } catch (err) {
-      setInitError(
-        err instanceof Error ? err.message : "Failed to create conversation"
-      );
+      const message = err instanceof Error ? err.message : "Failed to analyze screenshot";
+      setError(message);
+      const targetScreenId = pendingAnalyzeTargetByRequestRef.current.get(requestId);
+      if (targetScreenId) {
+        await updateSavedScreen(targetScreenId, {
+          analysisStatus: "failed",
+          analysisError: message,
+        }).catch(() => {});
+        setScreens((current) =>
+          current.map((screen) =>
+            screen.id === targetScreenId
+              ? {
+                  ...screen,
+                  analysisStatus: "failed",
+                  analysisError: message,
+                }
+              : screen,
+          ),
+        );
+        pendingAnalyzeTargetByRequestRef.current.delete(requestId);
+      }
+    } finally {
+      setIsAnalyzing(false);
+      if (activeAnalyzeRequestIdRef.current === requestId) {
+        activeAnalyzeRequestIdRef.current = null;
+      }
+    }
+  };
+
+  const handlePasteImage = async (event: ClipboardEvent<HTMLDivElement>) => {
+    const items = event.clipboardData?.items;
+    if (!items?.length) return;
+
+    const imageItem = Array.from(items).find((item) => item.type.startsWith("image/"));
+    if (!imageItem) return;
+
+    const file = imageItem.getAsFile();
+    if (!file) return;
+
+    event.preventDefault();
+    await analyzeFile(file);
+  };
+
+  const handleFileSelect = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    await analyzeFile(file);
+    event.target.value = "";
+  };
+
+  const createScreen = async () => {
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      setError("Screen name is required.");
+      return;
+    }
+
+    try {
+      const saved = await createSavedScreen({
+        name: trimmedName,
+        notes: notes.trim(),
+        previewUrl: previewUrl ?? undefined,
+        analysis: analysis?.description,
+        analysisStatus: isAnalyzing
+          ? "processing"
+          : analysis
+            ? "completed"
+            : error
+              ? "failed"
+              : "idle",
+        analysisError: error ?? undefined,
+      });
+
+      const newScreen = toScreenItem(saved);
+      setScreens((current) => [newScreen, ...current]);
+
+      if (isAnalyzing && activeAnalyzeRequestIdRef.current !== null) {
+        pendingAnalyzeTargetByRequestRef.current.set(activeAnalyzeRequestIdRef.current, newScreen.id);
+      }
+
+      setView({ type: "detail", screenId: newScreen.id });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to save screen";
+      setError(message);
+    }
+  };
+
+  const deleteScreen = async (screenId: string) => {
+    try {
+      await deleteSavedScreen(screenId);
+      setScreens((current) => current.filter((screen) => screen.id !== screenId));
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to delete screen";
+      setError(message);
+      return;
+    }
+
+    if (view.type === "detail" && view.screenId === screenId) {
+      setView({ type: "screens" });
     }
   };
 
   return (
-    <div className="flex h-screen bg-zinc-950 text-zinc-100">
-      <Sidebar
-        currentConversationId={currentConversationId}
-        onSelectConversation={setCurrentConversationId}
-        onNewChat={handleNewChat}
-        onOpenSettings={() => setShowSettings(true)}
-      />
-      <main className="flex-1 flex flex-col min-w-0">
-        {showSettings ? (
-          <Settings onClose={() => setShowSettings(false)} />
-        ) : currentConversationId ? (
-          <Chat conversationId={currentConversationId} />
-        ) : loading ? (
-          <div className="flex-1 flex items-center justify-center text-zinc-500">
-            Loading...
-          </div>
-        ) : error || initError ? (
-          <div className="flex-1 flex items-center justify-center p-6">
-            <div className="max-w-md rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200 space-y-3">
-              <p className="font-medium text-red-300">Unable to initialize chat</p>
-              <p>{initError ?? error}</p>
-              <div className="flex gap-2">
-                <button
-                  onClick={handleRetry}
-                  className="rounded-md bg-zinc-800 hover:bg-zinc-700 px-3 py-1.5 text-zinc-100 transition-colors"
-                >
-                  Retry
-                </button>
-                <button
-                  onClick={() => setShowSettings(true)}
-                  className="rounded-md border border-zinc-700 hover:border-zinc-600 px-3 py-1.5 text-zinc-200 transition-colors"
-                >
-                  Open Settings
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="flex-1 flex items-center justify-center text-zinc-500">
-            Loading...
-          </div>
-        )}
-      </main>
-    </div>
+    <AppShell
+      viewType={view.type}
+      onShowScreens={() => setView({ type: "screens" })}
+      onCreateScreen={beginCreate}
+    >
+      {view.type === "screens" && (
+        <ScreensGridPage
+          screens={screens}
+          onOpenScreen={(screenId) => setView({ type: "detail", screenId })}
+          onDeleteScreen={deleteScreen}
+        />
+      )}
+
+      {view.type === "detail" && (
+        <ScreenDetailPage
+          screen={activeScreen}
+          onBackToScreens={() => setView({ type: "screens" })}
+          onDeleteScreen={deleteScreen}
+        />
+      )}
+
+      {view.type === "create" && (
+        <CreateScreenPage
+          name={name}
+          notes={notes}
+          previewUrl={previewUrl}
+          analysis={analysis}
+          imageMimeType={imageMimeType}
+          isAnalyzing={isAnalyzing}
+          error={error}
+          onNameChange={setName}
+          onNotesChange={setNotes}
+          onFileSelect={handleFileSelect}
+          onPasteImage={handlePasteImage}
+          onCancel={() => setView({ type: "screens" })}
+          onSave={createScreen}
+        />
+      )}
+    </AppShell>
   );
 }
