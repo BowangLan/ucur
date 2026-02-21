@@ -3,6 +3,7 @@ import type { AppView } from "../../types/screens";
 
 type AppShellProps = PropsWithChildren<{
   viewType: AppView["type"];
+  onShowProjects: () => void;
   onShowScreens: () => void;
   onCreateScreen: () => void;
 }>;
@@ -38,11 +39,26 @@ function LogoMark() {
   );
 }
 
-export function AppShell({ viewType, onShowScreens, onCreateScreen, children }: AppShellProps) {
+export function AppShell({
+  viewType,
+  onShowProjects,
+  onShowScreens,
+  onCreateScreen,
+  children,
+}: AppShellProps) {
   const isScreensActive = viewType === "screens" || viewType === "detail";
+  const isProjectsActive = viewType === "projects" || viewType === "project-detail";
 
   const breadcrumb =
-    viewType === "create" ? "New Screen" : viewType === "detail" ? "Detail" : null;
+    viewType === "create"
+      ? "New Screen"
+      : viewType === "detail"
+        ? "Detail"
+        : viewType === "project-detail"
+          ? "Detail"
+        : viewType === "projects"
+          ? "Projects"
+          : null;
 
   return (
     <main
@@ -71,6 +87,27 @@ export function AppShell({ viewType, onShowScreens, onCreateScreen, children }: 
 
           {/* Navigation */}
           <nav className="flex-1 px-2 py-2.5 space-y-px">
+            <button
+              type="button"
+              onClick={onShowProjects}
+              className="w-full flex items-center gap-2.5 rounded-md px-3 py-2 text-[13px] transition-all duration-150"
+              style={
+                isProjectsActive
+                  ? {
+                      background: "rgba(94,106,210,0.12)",
+                      color: "rgba(255,255,255,0.9)",
+                      border: "1px solid rgba(94,106,210,0.2)",
+                    }
+                  : {
+                      background: "transparent",
+                      color: "rgba(255,255,255,0.42)",
+                      border: "1px solid transparent",
+                    }
+              }
+            >
+              <GridIcon />
+              <span>Projects</span>
+            </button>
             <button
               type="button"
               onClick={onShowScreens}
@@ -136,7 +173,7 @@ export function AppShell({ viewType, onShowScreens, onCreateScreen, children }: 
                 className="font-medium tracking-[-0.01em]"
                 style={{ color: "rgba(255,255,255,0.75)" }}
               >
-                Screens
+                {viewType === "projects" || viewType === "project-detail" ? "Projects" : "Screens"}
               </span>
               {breadcrumb && (
                 <>
@@ -146,21 +183,23 @@ export function AppShell({ viewType, onShowScreens, onCreateScreen, children }: 
               )}
             </div>
 
-            <button
-              type="button"
-              onClick={onCreateScreen}
-              className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-medium text-white transition-all duration-150"
-              style={{ background: "#5E6AD2" }}
-              onMouseEnter={(e) =>
-                ((e.currentTarget as HTMLButtonElement).style.background = "#6B78E5")
-              }
-              onMouseLeave={(e) =>
-                ((e.currentTarget as HTMLButtonElement).style.background = "#5E6AD2")
-              }
-            >
-              <PlusIcon />
-              New Screen
-            </button>
+            {viewType !== "projects" && viewType !== "project-detail" && (
+              <button
+                type="button"
+                onClick={onCreateScreen}
+                className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-medium text-white transition-all duration-150"
+                style={{ background: "#5E6AD2" }}
+                onMouseEnter={(e) =>
+                  ((e.currentTarget as HTMLButtonElement).style.background = "#6B78E5")
+                }
+                onMouseLeave={(e) =>
+                  ((e.currentTarget as HTMLButtonElement).style.background = "#5E6AD2")
+                }
+              >
+                <PlusIcon />
+                New Screen
+              </button>
+            )}
           </header>
 
           {/* Page content */}

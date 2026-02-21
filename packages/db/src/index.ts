@@ -5,3 +5,4 @@ export { createConversationRepository } from "./repositories/conversation.js";
 export { createMessageRepository } from "./repositories/message.js";
 export { createSettingsRepository } from "./repositories/settings.js";
 export { createScreenRepository } from "./repositories/screen.js";
+export { createProjectRepository } from "./repositories/project.js";

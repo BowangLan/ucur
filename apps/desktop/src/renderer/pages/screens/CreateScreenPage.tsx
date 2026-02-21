@@ -1,7 +1,10 @@
 import type { ChangeEvent, ClipboardEvent } from "react";
 import type { ScreenDescriptionResponse } from "../../lib/api";
+import type { ProjectItem } from "../../types/screens";
 
 type CreateScreenPageProps = {
+  projects: ProjectItem[];
+  selectedProjectId: string | null;
   name: string;
   notes: string;
   previewUrl: string | null;
@@ -10,6 +13,7 @@ type CreateScreenPageProps = {
   isAnalyzing: boolean;
   error: string | null;
   onNameChange: (value: string) => void;
+  onProjectChange: (projectId: string) => void;
   onNotesChange: (value: string) => void;
   onFileSelect: (event: ChangeEvent<HTMLInputElement>) => void;
   onPasteImage: (event: ClipboardEvent<HTMLDivElement>) => void;
@@ -97,6 +101,8 @@ function StyledInput({
 }
 
 export function CreateScreenPage({
+  projects,
+  selectedProjectId,
   name,
   notes,
   previewUrl,
@@ -105,6 +111,7 @@ export function CreateScreenPage({
   isAnalyzing,
   error,
   onNameChange,
+  onProjectChange,
   onNotesChange,
   onFileSelect,
   onPasteImage,
@@ -139,6 +146,30 @@ export function CreateScreenPage({
           </div>
 
           <div className="p-5 space-y-5">
+            {/* Name field */}
+            <label className="block">
+              <span
+                className="block text-[12px] font-medium mb-1.5"
+                style={{ color: "rgba(255,255,255,0.45)" }}
+              >
+                Project
+              </span>
+              <select
+                value={selectedProjectId ?? ""}
+                onChange={(event) => onProjectChange(event.target.value)}
+                style={inputStyle}
+              >
+                <option value="" disabled>
+                  {projects.length === 0 ? "Create a project first" : "Select a project"}
+                </option>
+                {projects.map((project) => (
+                  <option key={project.id} value={project.id}>
+                    {project.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+
             {/* Name field */}
             <label className="block">
               <span

@@ -1,6 +1,7 @@
 import { query, type SDKUserMessage } from "@anthropic-ai/claude-agent-sdk";
 import {
   createDb,
+  createProjectRepository,
   createScreenRepository,
   createSettingsRepository,
 } from "@repo/db";
@@ -12,6 +13,7 @@ const router: Router = Router();
 const db = createDb();
 const settingsRepo = createSettingsRepository(db);
 const screensRepo = createScreenRepository(db);
+const projectsRepo = createProjectRepository(db);
 const DEFAULT_MODEL = "claude-sonnet-4-20250514";
 const SUPPORTED_IMAGE_MIME_TYPES = new Set([
   "image/png",
@@ -44,6 +46,7 @@ function isUpstreamErrorDescription(value: string) {
 
 function mapSavedScreen(row: {
   id: string;
+  projectId: string;
   name: string;
   notes: string;
   previewUrl: string | null;
@@ -52,15 +55,22 @@ function mapSavedScreen(row: {
   analysisError: string | null;
   createdAt: Date;
   updatedAt: Date;
+  projectName?: string;
+  projectDescription?: string;
+  projectWorkingDirectory?: string | null;
 }) {
   return {
     id: row.id,
+    projectId: row.projectId,
     name: row.name,
     notes: row.notes,
     previewUrl: row.previewUrl ?? undefined,
     analysis: row.analysis ?? undefined,
     analysisStatus: row.analysisStatus,
     analysisError: row.analysisError ?? undefined,
+    projectName: row.projectName,
+    projectDescription: row.projectDescription,
+    projectWorkingDirectory: row.projectWorkingDirectory ?? undefined,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
@@ -101,9 +111,11 @@ function buildImagePrompt(
   return stream();
 }
 
-router.get("/", async (_req, res) => {
+router.get("/", async (req, res) => {
   try {
-    const rows = await screensRepo.listSaved();
+    const projectId =
+      typeof req.query.projectId === "string" ? req.query.projectId.trim() : undefined;
+    const rows = await screensRepo.listSaved(projectId || undefined);
     res.json({ screens: rows.map(mapSavedScreen) });
   } catch (err) {
     console.error("List saved screens error:", err);
@@ -114,6 +126,7 @@ router.get("/", async (_req, res) => {
 router.post("/", async (req, res) => {
   try {
     const body = (req.body ?? {}) as {
+      projectId?: string;
       name?: string;
       notes?: string;
       previewUrl?: string | null;
@@ -127,6 +140,16 @@ router.post("/", async (req, res) => {
       res.status(400).json({ error: "name is required" });
       return;
     }
+    const projectId = body.projectId?.trim();
+    if (!projectId) {
+      res.status(400).json({ error: "projectId is required" });
+      return;
+    }
+    const project = await projectsRepo.getById(projectId);
+    if (!project) {
+      res.status(400).json({ error: "Invalid projectId" });
+      return;
+    }
 
     const analysisStatus = (body.analysisStatus ?? "idle").trim();
     if (!isValidAnalysisStatus(analysisStatus)) {
@@ -138,6 +161,7 @@ router.post("/", async (req, res) => {
 
     const row = await screensRepo.createSaved({
       id: nanoid(),
+      projectId,
       name,
       notes: body.notes?.trim() ?? "",
       previewUrl: body.previewUrl ?? null,
@@ -146,7 +170,14 @@ router.post("/", async (req, res) => {
       analysisError: body.analysisError ?? null,
     });
 
-    res.status(201).json(mapSavedScreen(row));
+    res.status(201).json(
+      mapSavedScreen({
+        ...row,
+        projectName: project.name,
+        projectDescription: project.description,
+        projectWorkingDirectory: project.workingDirectory,
+      }),
+    );
   } catch (err) {
     console.error("Create saved screen error:", err);
     res.status(500).json({ error: "Failed to save screen" });
@@ -157,6 +188,7 @@ router.patch("/:id", async (req, res) => {
   try {
     const id = req.params.id;
     const body = (req.body ?? {}) as {
+      projectId?: string;
       name?: string;
       notes?: string;
       previewUrl?: string | null;
@@ -172,8 +204,17 @@ router.patch("/:id", async (req, res) => {
       return;
     }
     const analysisStatus = body.analysisStatus as AnalysisStatus | undefined;
+    const projectId = body.projectId?.trim();
+    if (projectId) {
+      const project = await projectsRepo.getById(projectId);
+      if (!project) {
+        res.status(400).json({ error: "Invalid projectId" });
+        return;
+      }
+    }
 
     const row = await screensRepo.updateSaved(id, {
+      projectId,
       name: body.name?.trim(),
       notes: body.notes?.trim(),
       previewUrl: body.previewUrl,
@@ -187,7 +228,15 @@ router.patch("/:id", async (req, res) => {
       return;
     }
 
-    res.json(mapSavedScreen(row));
+    const project = await projectsRepo.getById(row.projectId);
+    res.json(
+      mapSavedScreen({
+        ...row,
+        projectName: project?.name,
+        projectDescription: project?.description,
+        projectWorkingDirectory: project?.workingDirectory,
+      }),
+    );
   } catch (err) {
     console.error("Update saved screen error:", err);
     res.status(500).json({ error: "Failed to update screen" });

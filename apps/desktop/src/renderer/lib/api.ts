@@ -15,12 +15,26 @@ export interface ScreenDescriptionResponse {
 
 export interface SavedScreenResponse {
   id: string;
+  projectId: string;
+  projectName?: string;
+  projectDescription?: string;
+  projectWorkingDirectory?: string;
   name: string;
   notes: string;
   previewUrl?: string;
   analysis?: string;
   analysisStatus: "idle" | "processing" | "completed" | "failed";
   analysisError?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProjectResponse {
+  id: string;
+  name: string;
+  description: string;
+  workingDirectory?: string;
+  screenCount: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -111,7 +125,16 @@ export async function fetchSavedScreens() {
   return body.screens ?? [];
 }
 
+export async function fetchSavedScreensByProject(projectId: string) {
+  const query = new URLSearchParams({ projectId });
+  const res = await fetch(`${API_BASE}/screens?${query.toString()}`);
+  if (!res.ok) throw new Error("Failed to fetch saved screens");
+  const body = (await res.json()) as { screens?: SavedScreenResponse[] };
+  return body.screens ?? [];
+}
+
 export async function createSavedScreen(payload: {
+  projectId: string;
   name: string;
   notes: string;
   previewUrl?: string;
@@ -131,6 +154,60 @@ export async function createSavedScreen(payload: {
   }
 
   return (await res.json()) as SavedScreenResponse;
+}
+
+export async function fetchProjects() {
+  const res = await fetch(`${API_BASE}/projects`);
+  if (!res.ok) throw new Error("Failed to fetch projects");
+  const body = (await res.json()) as { projects?: ProjectResponse[] };
+  return body.projects ?? [];
+}
+
+export async function createProject(payload: {
+  name: string;
+  description?: string;
+  workingDirectory?: string;
+}) {
+  const res = await fetch(`${API_BASE}/projects`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(body.error ?? "Failed to create project");
+  }
+  return (await res.json()) as ProjectResponse;
+}
+
+export async function updateProject(
+  id: string,
+  payload: Partial<{
+    name: string;
+    description: string;
+    workingDirectory: string | null;
+  }>,
+) {
+  const res = await fetch(`${API_BASE}/projects/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(body.error ?? "Failed to update project");
+  }
+  return (await res.json()) as ProjectResponse;
+}
+
+export async function deleteProject(id: string) {
+  const res = await fetch(`${API_BASE}/projects/${id}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(body.error ?? "Failed to delete project");
+  }
 }
 
 export async function updateSavedScreen(

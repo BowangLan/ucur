@@ -3,6 +3,7 @@ import express from "express";
 import { accountRouter } from "./routes/account.js";
 import { chatRouter } from "./routes/chat.js";
 import { conversationsRouter } from "./routes/conversations.js";
+import { projectsRouter } from "./routes/projects.js";
 import { screensRouter } from "./routes/screens.js";
 import { settingsRouter } from "./routes/settings.js";
 
@@ -15,6 +16,7 @@ app.use(express.json({ limit: "15mb" }));
 app.use("/api/account", accountRouter);
 app.use("/api/chat", chatRouter);
 app.use("/api/conversations", conversationsRouter);
+app.use("/api/projects", projectsRouter);
 app.use("/api/screens", screensRouter);
 app.use("/api/settings", settingsRouter);
 

@@ -161,12 +161,19 @@ export function ScreensGridPage({ screens, onOpenScreen, onDeleteScreen }: Scree
             {/* Card body */}
             <div className="p-4">
               <div className="flex items-start justify-between gap-2 mb-1.5">
-                <h3
-                  className="text-[13px] font-medium leading-snug"
-                  style={{ color: "rgba(255,255,255,0.88)" }}
-                >
-                  {screen.name}
-                </h3>
+                <div>
+                  <h3
+                    className="text-[13px] font-medium leading-snug"
+                    style={{ color: "rgba(255,255,255,0.88)" }}
+                  >
+                    {screen.name}
+                  </h3>
+                  {screen.projectName && (
+                    <p className="mt-1 text-[10px]" style={{ color: "rgba(255,255,255,0.32)" }}>
+                      {screen.projectName}
+                    </p>
+                  )}
+                </div>
                 <StatusBadge
                   status={screen.analysisStatus}
                   error={screen.analysisError}

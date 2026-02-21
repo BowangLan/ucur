@@ -44,8 +44,24 @@ export const screens = sqliteTable("screens", {
     .$defaultFn(() => new Date()),
 });
 
+export const projects = sqliteTable("projects", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull().default(""),
+  workingDirectory: text("working_directory"),
+  createdAt: integer("created_at", { mode: "timestamp_ms" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
 export const savedScreens = sqliteTable("saved_screens", {
   id: text("id").primaryKey(),
+  projectId: text("project_id")
+    .notNull()
+    .references(() => projects.id, { onDelete: "restrict" }),
   name: text("name").notNull(),
   notes: text("notes").notNull().default(""),
   previewUrl: text("preview_url"),

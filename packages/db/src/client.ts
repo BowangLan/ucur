@@ -19,6 +19,11 @@ function hasTable(sqlite: Database.Database, tableName: string) {
   return Boolean(row);
 }
 
+function hasColumn(sqlite: Database.Database, tableName: string, columnName: string) {
+  const rows = sqlite.prepare(`PRAGMA table_info(${tableName})`).all() as Array<{ name: string }>;
+  return rows.some((row) => row.name === columnName);
+}
+
 function ensureLegacyTables(sqlite: Database.Database) {
   if (!hasTable(sqlite, "settings")) {
     sqlite.exec(`
@@ -44,10 +49,37 @@ function ensureLegacyTables(sqlite: Database.Database) {
     `);
   }
 
+  if (!hasTable(sqlite, "projects")) {
+    sqlite.exec(`
+      CREATE TABLE IF NOT EXISTS projects (
+        id text PRIMARY KEY NOT NULL,
+        name text NOT NULL,
+        description text NOT NULL DEFAULT '',
+        working_directory text,
+        created_at integer NOT NULL,
+        updated_at integer NOT NULL
+      );
+    `);
+  }
+
+  sqlite.exec(`
+    INSERT INTO projects (id, name, description, working_directory, created_at, updated_at)
+    VALUES (
+      'default-project',
+      'Default Project',
+      'Auto-created project for existing screens',
+      NULL,
+      CAST(unixepoch('now') * 1000 AS INTEGER),
+      CAST(unixepoch('now') * 1000 AS INTEGER)
+    )
+    ON CONFLICT(id) DO NOTHING;
+  `);
+
   if (!hasTable(sqlite, "saved_screens")) {
     sqlite.exec(`
       CREATE TABLE IF NOT EXISTS saved_screens (
         id text PRIMARY KEY NOT NULL,
+        project_id text NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,
         name text NOT NULL,
         notes text NOT NULL DEFAULT '',
         preview_url text,
@@ -57,6 +89,11 @@ function ensureLegacyTables(sqlite: Database.Database) {
         created_at integer NOT NULL,
         updated_at integer NOT NULL
       );
+    `);
+  } else if (!hasColumn(sqlite, "saved_screens", "project_id")) {
+    sqlite.exec(`
+      ALTER TABLE saved_screens ADD COLUMN project_id text REFERENCES projects(id);
+      UPDATE saved_screens SET project_id = 'default-project' WHERE project_id IS NULL;
     `);
   }
 }

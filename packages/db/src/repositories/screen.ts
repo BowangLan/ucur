@@ -1,6 +1,6 @@
-import { desc, eq } from "drizzle-orm";
+import { count, desc, eq } from "drizzle-orm";
 import type { Db } from "../client.js";
-import { savedScreens, screens } from "../schema.js";
+import { projects, savedScreens, screens } from "../schema.js";
 
 export function createScreenRepository(db: Db) {
   return {
@@ -25,6 +25,7 @@ export function createScreenRepository(db: Db) {
 
     async createSaved(data: {
       id: string;
+      projectId: string;
       name: string;
       notes: string;
       previewUrl?: string | null;
@@ -36,6 +37,7 @@ export function createScreenRepository(db: Db) {
         .insert(savedScreens)
         .values({
           id: data.id,
+          projectId: data.projectId,
           name: data.name,
           notes: data.notes,
           previewUrl: data.previewUrl ?? null,
@@ -47,13 +49,38 @@ export function createScreenRepository(db: Db) {
       return row;
     },
 
-    async listSaved() {
-      return db.select().from(savedScreens).orderBy(desc(savedScreens.createdAt));
+    async listSaved(projectId?: string) {
+      const query = db
+        .select({
+          id: savedScreens.id,
+          projectId: savedScreens.projectId,
+          name: savedScreens.name,
+          notes: savedScreens.notes,
+          previewUrl: savedScreens.previewUrl,
+          analysis: savedScreens.analysis,
+          analysisStatus: savedScreens.analysisStatus,
+          analysisError: savedScreens.analysisError,
+          createdAt: savedScreens.createdAt,
+          updatedAt: savedScreens.updatedAt,
+          projectName: projects.name,
+          projectDescription: projects.description,
+          projectWorkingDirectory: projects.workingDirectory,
+        })
+        .from(savedScreens)
+        .innerJoin(projects, eq(savedScreens.projectId, projects.id))
+        .orderBy(desc(savedScreens.createdAt));
+
+      if (projectId) {
+        return query.where(eq(savedScreens.projectId, projectId));
+      }
+
+      return query;
     },
 
     async updateSaved(
       id: string,
       patch: {
+        projectId?: string;
         name?: string;
         notes?: string;
         previewUrl?: string | null;
@@ -67,6 +94,7 @@ export function createScreenRepository(db: Db) {
       };
 
       if (patch.name !== undefined) values.name = patch.name;
+      if (patch.projectId !== undefined) values.projectId = patch.projectId;
       if (patch.notes !== undefined) values.notes = patch.notes;
       if (patch.previewUrl !== undefined) values.previewUrl = patch.previewUrl;
       if (patch.analysis !== undefined) values.analysis = patch.analysis;
@@ -91,6 +119,14 @@ export function createScreenRepository(db: Db) {
         .where(eq(savedScreens.id, id))
         .returning({ id: savedScreens.id });
       return row ?? null;
+    },
+
+    async countSavedByProject(projectId: string) {
+      const [row] = await db
+        .select({ value: count(savedScreens.id) })
+        .from(savedScreens)
+        .where(eq(savedScreens.projectId, projectId));
+      return row?.value ?? 0;
     },
   };
 }

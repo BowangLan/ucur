@@ -167,6 +167,12 @@ export function ScreenDetailPage({ screen, onBackToScreens, onDeleteScreen }: Sc
         <p className="mt-1 text-[12px]" style={{ color: "rgba(255,255,255,0.3)" }}>
           Created {formatDate(screen.createdAt)}
         </p>
+        {screen.projectName && (
+          <p className="mt-1 text-[12px]" style={{ color: "rgba(255,255,255,0.42)" }}>
+            Project: {screen.projectName}
+            {screen.projectWorkingDirectory ? ` (${screen.projectWorkingDirectory})` : ""}
+          </p>
+        )}
       </div>
 
       {/* Content grid */}
